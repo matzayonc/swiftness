@@ -199,5 +199,7 @@ fn test_vector_commitment_decommit() {
         ]),
     };
 
-    vector_commitment_decommit(&commitment, &queries, witness).unwrap();
+    let mut shifted_queries = FunVec::from_vec(vec![]);
+    shifted_queries.flush();
+    vector_commitment_decommit(&mut shifted_queries, &commitment, &queries, &witness).unwrap();
 }

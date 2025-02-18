@@ -23,13 +23,11 @@ pub fn print_address<T>(address: &T, label: u64) {
     );
 }
 
-#[test]
-fn test_print_address() {
-    let a: u64 = 0x7ffcbd7e45d8;
-    let b: u64 = 0x688;
-
-    let a = a % 0x3fff - 2970;
-    assert_eq!(a, b);
+pub fn dump<T: Serialize>(value: &T, path: &str) {
+    let serialized = serde_json::to_string(value).unwrap();
+    let path = &format!("{}.json", path);
+    std::fs::write(path, serialized).unwrap();
+    // println!("Dumped to {}", path);
 }
 
 #[inline(never)]

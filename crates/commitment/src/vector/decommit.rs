@@ -20,7 +20,6 @@ pub fn vector_commitment_decommit(
     let shift: &Felt = &Box::new(Felt::TWO.pow_felt(&commitment.config.height));
 
     // Shifts the query indices by shift=2**height, to convert index representation to heap-like.
-
     assert_eq!(shifted_queries.len(), 0);
     assert_eq!(shifted_queries.len(), 0);
 
@@ -42,6 +41,7 @@ pub fn vector_commitment_decommit(
     .unwrap();
 
     if commitment.commitment_hash != expected_commitment {
+        assert_eq!(commitment.commitment_hash, expected_commitment);
         return Err(Box::new(Error::MisMatch {
             value: commitment.commitment_hash,
             expected: expected_commitment,

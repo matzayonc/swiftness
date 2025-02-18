@@ -1,4 +1,5 @@
 use alloc::vec;
+use funvec::FunBox;
 use starknet_crypto::Felt;
 use swiftness_air::layout::recursive::global_values::InteractionElements;
 use swiftness_commitment::{
@@ -12,8 +13,8 @@ use super::oods_values;
 
 pub fn get() -> StarkCommitment<InteractionElements> {
     StarkCommitment {
-        traces: swiftness_air::fixtures::commitment::get(),
-        composition: TableCommitment {
+        traces: FunBox::new(swiftness_air::fixtures::commitment::get()),
+        composition: FunBox::new(TableCommitment {
             config: TableCommitmentConfig {
                 n_columns: Felt::from_hex_unchecked("0x2"),
                 vector: VectorCommitmentConfig {
@@ -30,7 +31,7 @@ pub fn get() -> StarkCommitment<InteractionElements> {
                     "0x30b93bbd6b193eb57d9f818202b899b7e8e09b0c7d183537fe85f4e6b6f4373",
                 ),
             },
-        },
+        }),
         interaction_after_composition: Felt::from_hex_unchecked(
             "0x1c0d29e24bc79e4679b20a2185841d65fa77a288bdd472e1d4a3de9324338e7",
         ),
@@ -440,6 +441,6 @@ pub fn get() -> StarkCommitment<InteractionElements> {
                 "0x7a702a902f300a47fb79f18195691f2f1cd57fa870b6d4e12d365ed59231506",
             ),
         ],
-        fri: swiftness_fri::fixtures::commitment::get(),
+        fri: FunBox::new(swiftness_fri::fixtures::commitment::get()),
     }
 }

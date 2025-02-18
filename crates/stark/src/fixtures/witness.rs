@@ -1,83 +1,90 @@
 use alloc::vec;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_commitment::{
-    table::types::{Decommitment as TableDecommitment, Witness as TableCommitmentWitness},
+    table::{
+        decommit::MONTGOMERY_R,
+        types::{Decommitment as TableDecommitment, Witness as TableCommitmentWitness},
+    },
     vector::types::Witness as VectorCommitmentWitness,
 };
 
 use crate::types::StarkWitness;
 
 pub fn get() -> StarkWitness {
+    let values = FunVec::from_vec(vec![
+        Felt::from_hex_unchecked(
+            "0x7292f156e66e87304f8a7e0e565a3fec43d76f2c80a400c2a590c6660f205f0",
+        ),
+        Felt::from_hex_unchecked(
+            "0x1a5eb53e5336a81290ca99cbd8d3aa638bc94a830b39fdea42631fb79a8a18",
+        ),
+        Felt::from_hex_unchecked(
+            "0x635a6d597a5fa9e30719d9eb31fa71025849d5db13d52978f6c030ff83d5747",
+        ),
+        Felt::from_hex_unchecked(
+            "0x1b98ae2bcfe29abdff214a5d649d2b9b4861785e71114e4126a240bf88ea981",
+        ),
+        Felt::from_hex_unchecked(
+            "0x70bfef37afc339928c0b913331065c9f91de38950d4485ee3554b81049ca7a9",
+        ),
+        Felt::from_hex_unchecked(
+            "0x66530d11b117a33d3c4f625b53bd534209fce354190801eb5511d6e26e876f7",
+        ),
+        Felt::from_hex_unchecked(
+            "0x29c2c6fb927ec573b1b8d28eb0160e54b8386414ce096221c744924329a9b75",
+        ),
+        Felt::from_hex_unchecked(
+            "0x75913dbeef39e24469bc99ced5a8970e3c99a728979115a205198d928716059",
+        ),
+        Felt::from_hex_unchecked(
+            "0x764b5e049a3f2073449e18898e94b404f3c866e29dc24de116311c8ed9edf6c",
+        ),
+        Felt::from_hex_unchecked(
+            "0xfb84335e5da80feb729a0badcc7fc25152b599e8c760474422015ffffda485",
+        ),
+        Felt::from_hex_unchecked(
+            "0xb3aa6727ca035c9b754ba27b146e1aafae0b008cebf7e5c5ed30ea1ba3ef10",
+        ),
+        Felt::from_hex_unchecked(
+            "0x78bd952c31812a3dba9ea82034b8b0136c6e3259284678279222c2c7ec97528",
+        ),
+        Felt::from_hex_unchecked(
+            "0x2aabc8793bdd34d85d4bc8a65892e1a135711c8cf0cb3d28a686b3ce2258740",
+        ),
+        Felt::from_hex_unchecked(
+            "0x7cc04d09f944a52e78c4c0c3bf4c7b412332a63e4bdf6cbabaff72a2096092e",
+        ),
+        Felt::from_hex_unchecked(
+            "0x1e54ed7383142528172ca0a33fc6d858cabd2cb451dcf3e230415a554ab0904",
+        ),
+        Felt::from_hex_unchecked(
+            "0x1ee4666c435c870ad78576ff46d940d2a7c1ebbce56e478e27712b882383fa5",
+        ),
+        Felt::from_hex_unchecked(
+            "0x6b90ce41d9581f9cd6f59e3853d27731d1413e134bf4e460984d2069125444b",
+        ),
+        Felt::from_hex_unchecked(
+            "0x76033ecf0736a2871bd443651416ff0cadc0766d211e5664f3a0615e2934b5f",
+        ),
+        Felt::from_hex_unchecked(
+            "0x121f3f91e17d3331df67d77b6f81c288b538c382d1751d6f81b2fbe247c1470",
+        ),
+        Felt::from_hex_unchecked(
+            "0x18b1e78ed8bad85ab8eb8d5182462144bcce5da7385c14433a5f217b5bf7ef",
+        ),
+    ]);
+
     StarkWitness {
         traces_decommitment: swiftness_air::fixtures::decommitment::get(),
         traces_witness: swiftness_air::fixtures::witness::get(),
         composition_decommitment: TableDecommitment {
-            values: vec![
-                Felt::from_hex_unchecked(
-                    "0x7292f156e66e87304f8a7e0e565a3fec43d76f2c80a400c2a590c6660f205f0",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x1a5eb53e5336a81290ca99cbd8d3aa638bc94a830b39fdea42631fb79a8a18",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x635a6d597a5fa9e30719d9eb31fa71025849d5db13d52978f6c030ff83d5747",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x1b98ae2bcfe29abdff214a5d649d2b9b4861785e71114e4126a240bf88ea981",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x70bfef37afc339928c0b913331065c9f91de38950d4485ee3554b81049ca7a9",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x66530d11b117a33d3c4f625b53bd534209fce354190801eb5511d6e26e876f7",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x29c2c6fb927ec573b1b8d28eb0160e54b8386414ce096221c744924329a9b75",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x75913dbeef39e24469bc99ced5a8970e3c99a728979115a205198d928716059",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x764b5e049a3f2073449e18898e94b404f3c866e29dc24de116311c8ed9edf6c",
-                ),
-                Felt::from_hex_unchecked(
-                    "0xfb84335e5da80feb729a0badcc7fc25152b599e8c760474422015ffffda485",
-                ),
-                Felt::from_hex_unchecked(
-                    "0xb3aa6727ca035c9b754ba27b146e1aafae0b008cebf7e5c5ed30ea1ba3ef10",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x78bd952c31812a3dba9ea82034b8b0136c6e3259284678279222c2c7ec97528",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x2aabc8793bdd34d85d4bc8a65892e1a135711c8cf0cb3d28a686b3ce2258740",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x7cc04d09f944a52e78c4c0c3bf4c7b412332a63e4bdf6cbabaff72a2096092e",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x1e54ed7383142528172ca0a33fc6d858cabd2cb451dcf3e230415a554ab0904",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x1ee4666c435c870ad78576ff46d940d2a7c1ebbce56e478e27712b882383fa5",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x6b90ce41d9581f9cd6f59e3853d27731d1413e134bf4e460984d2069125444b",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x76033ecf0736a2871bd443651416ff0cadc0766d211e5664f3a0615e2934b5f",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x121f3f91e17d3331df67d77b6f81c288b538c382d1751d6f81b2fbe247c1470",
-                ),
-                Felt::from_hex_unchecked(
-                    "0x18b1e78ed8bad85ab8eb8d5182462144bcce5da7385c14433a5f217b5bf7ef",
-                ),
-            ],
+            values,
+            montgomery_values: FunVec::from_vec(values.iter().map(|v| v * MONTGOMERY_R).collect()),
         },
         composition_witness: TableCommitmentWitness {
             vector: VectorCommitmentWitness {
-                authentications: vec![
+                authentications: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x3cb594d08bff7d9b1358ff9ac9da944f817b8fdaf0ce0653ae610f164481017",
                     ),
@@ -558,7 +565,7 @@ pub fn get() -> StarkWitness {
                     Felt::from_hex_unchecked(
                         "0x52d152c87e6520b614e7851b8ee820b87aa9e1bcffa93f75191122822b9a1eb",
                     ),
-                ],
+                ]),
             },
         },
         fri_witness: swiftness_fri::fixtures::witness::get(),

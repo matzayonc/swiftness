@@ -1,5 +1,6 @@
 use alloc::vec::Vec;
 use funvec::{FunVec, FUNVEC_AUTHENTICATIONS, FUNVEC_QUERIES};
+use serde::Serialize;
 use starknet_crypto::Felt;
 
 pub struct FriLayerComputationParams<'a> {
@@ -8,7 +9,7 @@ pub struct FriLayerComputationParams<'a> {
     pub eval_point: &'a Felt,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct FriLayerQuery {
     pub index: Felt,
     pub y_value: Felt,
@@ -47,11 +48,11 @@ pub fn compute_coset_elements(
         if q.is_some() && q.unwrap().index == coset_start_index + Felt::from(index) {
             coset_elements.push(q.unwrap().y_value);
             coset_x_inv = q.unwrap().x_inv_value * fri_group.get(index).unwrap();
-            queries.shift(2);
+            queries.shift(1);
         } else {
             let witness = sibling_witness.first();
             coset_elements.push(*witness.unwrap());
-            sibling_witness.shift(2);
+            sibling_witness.shift(1);
         }
     }
 

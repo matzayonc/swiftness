@@ -712,6 +712,7 @@ version = "1.0.0"
 dependencies = [
  "bytemuck",
  "serde",
+ "serde_json",
  "solana-program",
  "starknet-crypto",
 ]

@@ -1,6 +1,6 @@
 use alloc::boxed::Box;
 use alloc::{borrow::ToOwned, vec::Vec};
-use funvec::{FunVec, FUNVEC_QUERIES};
+use funvec::{dump, FunVec, FUNVEC_QUERIES};
 use starknet_crypto::Felt;
 use swiftness_commitment::{
     table::{
@@ -119,9 +119,9 @@ fn fri_verify_layers<'a>(
 
     for i in 0..len {
         let target_layer_witness = layer_witness.get_mut(i).unwrap();
-        let target_layer_witness_leaves = &mut target_layer_witness.leaves;
-        let target_layer_witness_table_withness = &target_layer_witness.table_witness;
-        let target_commitment = commitment.get(i).unwrap();
+        let mut target_layer_witness_leaves = target_layer_witness.leaves.clone();
+        let target_layer_witness_table_withness = target_layer_witness.table_witness.clone();
+        let target_commitment = commitment.get(i).unwrap().clone();
 
         // Params.
         let coset_size = Box::new(Felt::TWO.pow_felt(step_sizes.get(i).unwrap()));
@@ -135,28 +135,29 @@ fn fri_verify_layers<'a>(
         compute_next_layer(
             &mut cache.next_layer_cache,
             fri_queries,
-            target_layer_witness_leaves,
+            &mut target_layer_witness_leaves,
             params,
         )
         .unwrap();
         let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } =
             cache.next_layer_cache;
 
-        // // Table decommitment.
+        // Table decommitment.
         // let _ = table_decommit(
         //     &mut cache.commitment,
         //     &target_commitment,
-        //     &verify_indices,
+        //     verify_indices.as_slice(),
         //     &TableDecommitment {
         //         montgomery_values: FunVec::from_vec(
         //             verify_y_values.iter().map(|y| y * MONTGOMERY_R).collect(),
         //         ),
-        //         values: FunVec::from_vec(verify_y_values),
+        //         values: verify_y_values,
         //     },
         //     &target_layer_witness_table_withness,
         // );
 
-        // queries = next_queries;
+        fri_queries.flush();
+        fri_queries.extend(next_queries.as_slice());
     }
 
     fri_queries.as_slice()

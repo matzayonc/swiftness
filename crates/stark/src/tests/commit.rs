@@ -5,6 +5,7 @@ use swiftness_transcript::transcript::Transcript;
 use crate::{
     commit::stark_commit,
     fixtures::{commitment, config, domains, unsent_commitment},
+    types::CacheStark,
 };
 
 #[test]
@@ -21,8 +22,11 @@ pub fn test_stark_commit() {
     let config = config::get();
     let stark_domains = domains::get();
 
+    let mut cache = CacheStark::default();
+
     assert_eq!(
         stark_commit::<Layout>(
+            &mut cache,
             &mut transcript,
             &public_input,
             &unsent_commitment,

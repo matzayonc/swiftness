@@ -1,14 +1,16 @@
 use alloc::vec;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 
 use crate::{
     group::get_fri_group,
     layer::{compute_next_layer, FriLayerComputationParams, FriLayerQuery},
+    ComputeNextLayerCache,
 };
 
 #[test]
 fn test_next_layer1() {
-    let mut queries = vec![FriLayerQuery {
+    let mut queries = FunVec::from_vec(vec![FriLayerQuery {
         index: Felt::from_dec_str("19").unwrap(),
         y_value: Felt::from_dec_str(
             "3009640132648008425771663319959959262486220333099664427328058765768842449250",
@@ -18,15 +20,15 @@ fn test_next_layer1() {
             "54553547539894122403827046258314152559223416585866015792288871627619859008",
         )
         .unwrap(),
-    }];
-    let mut sibling_witness = vec![Felt::from_dec_str(
+    }]);
+    let mut sibling_witness = FunVec::from_vec(vec![Felt::from_dec_str(
         "1123008634785466227765787920403783137942925653310144335875674694591276473192",
     )
-    .unwrap()];
+    .unwrap()]);
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(2),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(2),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2443479172752326919986485065418726216145528469562787664528210275186695390471",
         )
         .unwrap(),
@@ -54,17 +56,18 @@ fn test_next_layer1() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_y_values, expected_verify_y_values);
-    assert_eq!(verify_indices, expected_verify_indices);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
 }
 
 #[test]
 fn test_next_layer2() {
-    let mut queries = vec![FriLayerQuery {
+    let mut queries = FunVec::from_vec(vec![FriLayerQuery {
         index: Felt::from(17),
         y_value: Felt::from_dec_str(
             "2759623090142790690855098103901650892631267048724128835098128315349419136695",
@@ -74,8 +77,8 @@ fn test_next_layer2() {
             "108072969398534483334507045980403840714691619221758030761568305841993401905",
         )
         .unwrap(),
-    }];
-    let mut sibling_witness = vec![
+    }]);
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "522165234549733937327724288257767164912068272740875848443122078655609268368",
         )
@@ -88,12 +91,12 @@ fn test_next_layer2() {
             "2828526802429981059567341974328690206758626003655409262291038410023069024668",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(4),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(4),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "1982585344331058375026005306471531766707340420809531025829328268083147325627",
         )
         .unwrap(),
@@ -131,17 +134,18 @@ fn test_next_layer2() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_y_values, expected_verify_y_values);
-    assert_eq!(verify_indices, expected_verify_indices);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
 }
 
 #[test]
 fn test_next_layer3() {
-    let mut queries = vec![FriLayerQuery {
+    let mut queries = FunVec::from_vec(vec![FriLayerQuery {
         index: Felt::from(22),
         y_value: Felt::from_dec_str(
             "1231175216455939321078564173742303628142533875402290207354372253959167512307",
@@ -151,9 +155,9 @@ fn test_next_layer3() {
             "3549719361548528048410263413791561966844406610277484802193762821339412459253",
         )
         .unwrap(),
-    }];
+    }]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "1195728970024453214596842786271366866852813595571023478251747255080180444356",
         )
@@ -182,12 +186,12 @@ fn test_next_layer3() {
             "534188447380076871805292320071703806717768188674590858686911614529936239219",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(8),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(8),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2996681160573045082893848544757424160476352714075260471151952365319051355220",
         )
         .unwrap(),
@@ -240,17 +244,18 @@ fn test_next_layer3() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_y_values, expected_verify_y_values);
-    assert_eq!(verify_indices, expected_verify_indices);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
 }
 
 #[test]
 fn test_next_layer4() {
-    let mut queries = vec![FriLayerQuery {
+    let mut queries = FunVec::from_vec(vec![FriLayerQuery {
         index: Felt::from(17),
         y_value: Felt::from_dec_str(
             "107634985777525198719457933516612993333665001206557081850887267601999593307",
@@ -260,9 +265,9 @@ fn test_next_layer4() {
             "2917507526425378062891209641407297049970803804883101888033200410523468508223",
         )
         .unwrap(),
-    }];
+    }]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "1614105094820940547932979114275805368596980954610062272415295623855966399938",
         )
@@ -323,12 +328,12 @@ fn test_next_layer4() {
             "3476983551724853290554915215874670223757771126370434051488495793846971603388",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(16),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(16),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "3246137206661909741808114726375056135951563790002136626674903353340777908146",
         )
         .unwrap(),
@@ -413,17 +418,18 @@ fn test_next_layer4() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_y_values, expected_verify_y_values);
-    assert_eq!(verify_indices, expected_verify_indices);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
 }
 
 #[test]
 fn test_next_layer5() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(0),
             y_value: Felt::from_dec_str(
@@ -446,9 +452,9 @@ fn test_next_layer5() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "2207292640602765987605417203853603264378518893482237233873998269956850458932",
         )
@@ -457,12 +463,12 @@ fn test_next_layer5() {
             "288897229768628159275046633516552015154393884429636644820405109361062428074",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(2),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(2),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2185465603412249558871549627667757930155426034864563482170756257080076225958",
         )
         .unwrap(),
@@ -512,17 +518,18 @@ fn test_next_layer5() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_y_values, expected_verify_y_values);
-    assert_eq!(verify_indices, expected_verify_indices);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
 }
 
 #[test]
 fn test_next_layer6() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(5),
             y_value: Felt::from_dec_str(
@@ -545,9 +552,9 @@ fn test_next_layer6() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "804399642855128535722354372618913360973130781887293769086134887025287828450",
         )
@@ -572,12 +579,12 @@ fn test_next_layer6() {
             "1337441648818842689794955442935277091168720593363441772344593529889075124973",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(4),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(4),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2167335350971787138507326388801205881447440912920817749862011161467677463940",
         )
         .unwrap(),
@@ -644,17 +651,18 @@ fn test_next_layer6() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer7() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(7),
             y_value: Felt::from_dec_str(
@@ -677,9 +685,9 @@ fn test_next_layer7() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "1381946771663536271686283445165923669245048036336685207435678635918790010415",
         )
@@ -736,12 +744,12 @@ fn test_next_layer7() {
             "2828844164871944409923044279501485001881689120102902225098373010416437899881",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(8),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(8),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "384372973063416357441038011066619352380639619775069754153768649812098431519",
         )
         .unwrap(),
@@ -840,17 +848,18 @@ fn test_next_layer7() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer8() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(14),
             y_value: Felt::from_dec_str(
@@ -873,9 +882,9 @@ fn test_next_layer8() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "2949257002824431099820924461178954292967579447203636252898226318072740386824",
         )
@@ -996,12 +1005,12 @@ fn test_next_layer8() {
             "3485201017653558756685420512495162933189527567610822904102000763401993219662",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(16),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(16),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "52871414864247307776012409456547680662415039421837737271534775961443350705",
         )
         .unwrap(),
@@ -1164,17 +1173,18 @@ fn test_next_layer8() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer9() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(10),
             y_value: Felt::from_dec_str(
@@ -1208,17 +1218,17 @@ fn test_next_layer9() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![Felt::from_dec_str(
+    let mut sibling_witness = FunVec::from_vec(vec![Felt::from_dec_str(
         "3176532942878567276526900338617699157909586755721347090315239907293123933092",
     )
-    .unwrap()];
+    .unwrap()]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(2),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(2),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "581747590720875793993157628416105910892274340828581484518962213541176928984",
         )
         .unwrap(),
@@ -1269,17 +1279,18 @@ fn test_next_layer9() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer10() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(5),
             y_value: Felt::from_dec_str(
@@ -1313,9 +1324,9 @@ fn test_next_layer10() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "3354395884762193735774972945190699549697221284699421903066644213798392549402",
         )
@@ -1352,12 +1363,12 @@ fn test_next_layer10() {
             "3403040452882679612874283723507253802829979450632690322212356915241676774155",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(4),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(4),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "842716418594610507165719701550798710728706432825705961415071015594374037783",
         )
         .unwrap(),
@@ -1451,17 +1462,18 @@ fn test_next_layer10() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer11() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(13),
             y_value: Felt::from_dec_str(
@@ -1495,9 +1507,9 @@ fn test_next_layer11() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "3132112378686662059596343294646770786600609238470988213583095363604854334582",
         )
@@ -1550,12 +1562,12 @@ fn test_next_layer11() {
             "3187985426015104063712461074067156374723555157039404691369397066532053540037",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(8),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(8),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "1891358614242486301056439669334692072313573517224693441784224259774268368657",
         )
         .unwrap(),
@@ -1654,17 +1666,18 @@ fn test_next_layer11() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer12() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(5),
             y_value: Felt::from_dec_str(
@@ -1698,9 +1711,9 @@ fn test_next_layer12() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "1207893144587700365996195575736463898273419338985626305569288268445097779644",
         )
@@ -1817,12 +1830,12 @@ fn test_next_layer12() {
             "2553559058682947159814270185638032697395233101874392167746095003347085031030",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(16),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(16),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "3595973390675465639794922899086636220512672666972909183802502305051197462034",
         )
         .unwrap(),
@@ -1985,17 +1998,18 @@ fn test_next_layer12() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer13() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(4),
             y_value: Felt::from_dec_str(
@@ -2040,9 +2054,9 @@ fn test_next_layer13() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "2050030406567804179442000347699156712126697950069244167305023529960957405037",
         )
@@ -2059,12 +2073,12 @@ fn test_next_layer13() {
             "724963531516986282530869066191617872380337840104897443636827319336363047197",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(2),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(2),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2421848930253683544491204126387682224910511646695020603828594542121930160761",
         )
         .unwrap(),
@@ -2153,17 +2167,18 @@ fn test_next_layer13() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer14() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(2),
             y_value: Felt::from_dec_str(
@@ -2208,9 +2223,9 @@ fn test_next_layer14() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "2950872026957754570520920887716695721163885794330469237821164944724213529559",
         )
@@ -2243,12 +2258,12 @@ fn test_next_layer14() {
             "1909838974457498375031773317733557605709575892255791166978664386630300826462",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(4),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(4),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2890900194451389976335809017939659452822058660721403378521723434210041554982",
         )
         .unwrap(),
@@ -2342,17 +2357,18 @@ fn test_next_layer14() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer15() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(3),
             y_value: Felt::from_dec_str(
@@ -2397,9 +2413,9 @@ fn test_next_layer15() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "568564974606148495952068697014394313795111623433425386734413188543473055716",
         )
@@ -2480,12 +2496,12 @@ fn test_next_layer15() {
             "3100876726267232844173520141766067628776170322055721109835889787928561738493",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(8),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(8),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2667333039062326164983120557556866577383303469424551586689009383516583846698",
         )
         .unwrap(),
@@ -2627,17 +2643,18 @@ fn test_next_layer15() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }
 
 #[test]
 fn test_next_layer16() {
-    let mut queries = vec![
+    let mut queries = FunVec::from_vec(vec![
         FriLayerQuery {
             index: Felt::from(7),
             y_value: Felt::from_dec_str(
@@ -2682,9 +2699,9 @@ fn test_next_layer16() {
             )
             .unwrap(),
         },
-    ];
+    ]);
 
-    let mut sibling_witness = vec![
+    let mut sibling_witness = FunVec::from_vec(vec![
         Felt::from_dec_str(
             "180909023427284908087068954735501773245381309706885307634112035720217679110",
         )
@@ -2797,12 +2814,12 @@ fn test_next_layer16() {
             "2117829586952619081545500943334082335605420332616462445739700555609069867362",
         )
         .unwrap(),
-    ];
+    ]);
 
     let params = FriLayerComputationParams {
-        coset_size: Felt::from(16),
-        fri_group: get_fri_group(),
-        eval_point: Felt::from_dec_str(
+        coset_size: &Felt::from(16),
+        fri_group: &get_fri_group(),
+        eval_point: &Felt::from_dec_str(
             "2131161197067646908062806238455827830521701314225315670510309581734422726318",
         )
         .unwrap(),
@@ -2965,10 +2982,11 @@ fn test_next_layer16() {
         .unwrap(),
     ];
 
-    let (next_queries, verify_indices, verify_y_values) =
-        compute_next_layer(&mut queries, &mut sibling_witness, params).unwrap();
+    let mut cache = ComputeNextLayerCache::default();
+    compute_next_layer(&mut cache, &mut queries, &mut sibling_witness, params).unwrap();
+    let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } = cache;
 
-    assert_eq!(next_queries, expected_next_queries);
-    assert_eq!(verify_indices, expected_verify_indices);
-    assert_eq!(verify_y_values, expected_verify_y_values);
+    assert_eq!(next_queries.to_vec(), expected_next_queries);
+    assert_eq!(verify_indices.to_vec(), expected_verify_indices);
+    assert_eq!(verify_y_values.to_vec(), expected_verify_y_values);
 }

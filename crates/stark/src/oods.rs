@@ -17,6 +17,7 @@ pub struct OodsEvaluationInfo<'a> {
 
 // Checks that the trace and the compostion agree at oods_point, assuming the prover provided us
 // with the proper evaluations.
+#[inline(always)]
 pub fn verify_oods<Layout: LayoutTrait>(
     powers: &mut [Felt; 34],
     oods: &[Felt],

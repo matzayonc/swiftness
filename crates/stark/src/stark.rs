@@ -48,7 +48,7 @@ impl StarkProof {
 
         let Cache { stark, verify } = cache;
 
-        // // STARK commitment phase.
+        // STARK commitment phase.
         let stark_commitment = Box::new(stark_commit::<Layout>(
             stark,
             &mut transcript,

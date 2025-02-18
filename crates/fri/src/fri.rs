@@ -142,7 +142,7 @@ fn fri_verify_layers<'a>(
         let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } =
             cache.next_layer_cache;
 
-        // // // Table decommitment.
+        // // Table decommitment.
         // let _ = table_decommit(
         //     &mut cache.commitment,
         //     &target_commitment,

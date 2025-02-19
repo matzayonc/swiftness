@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use funvec::{FunVec, FUNVEC_AUTHENTICATIONS, FUNVEC_QUERIES};
 use serde::Serialize;
 use starknet_crypto::Felt;
@@ -29,6 +28,7 @@ pub struct FriLayerQuery {
 //   - coset_elements: the values of the coset elements.
 //   - coset_x_inv: x_inv of the first element in the coset. This value is set only if at least one
 //     query was consumed by this function.
+#[inline(always)]
 pub fn compute_coset_elements(
     coset_elements: &mut FunVec<Felt, FUNVEC_QUERIES>,
     queries: &mut FriQueries,
@@ -42,7 +42,7 @@ pub fn compute_coset_elements(
     coset_elements.flush();
 
     let mut coset_x_inv = Felt::ZERO;
-    let coset_size: usize = coset_size.to_biguint().try_into().unwrap();
+    let coset_size: usize = funvec::cast_felt(coset_size) as usize;
     for index in 0..coset_size {
         let q = queries.first();
         if q.is_some() && q.unwrap().index == coset_start_index + Felt::from(index) {
@@ -72,7 +72,7 @@ pub fn compute_coset_elements(
 //   - verify_indices: query indices of the given layer for Merkle verification.
 //   - verify_y_values: query y values of the given layer for Merkle verification.
 #[allow(clippy::type_complexity)]
-#[inline(always)]
+#[inline(never)]
 pub fn compute_next_layer(
     cache: &mut ComputeNextLayerCache,
     queries: &mut FunVec<FriLayerQuery, { FUNVEC_QUERIES * 3 }>,
@@ -92,12 +92,18 @@ pub fn compute_next_layer(
     verify_indices.flush();
     verify_y_values.flush();
 
+    #[inline(never)]
+    fn get_coset_index(query_uint: &Felt, coset_size: &Felt) -> Felt {
+        let query_uint_u64 = funvec::cast_felt(query_uint);
+        let coset_size_u64 = funvec::cast_felt(coset_size);
+
+        Felt::from(query_uint_u64 / coset_size_u64)
+    }
+
     let coset_size = params.coset_size;
     while !queries.is_empty() {
-        let query_uint = queries.at(0).index.to_biguint();
-        let coset_size_uint = coset_size.to_biguint();
-        let coset_index =
-            Felt::from_bytes_be_slice((query_uint / coset_size_uint).to_bytes_be().as_slice());
+        let query_uint = queries.at(0).index;
+        let coset_index = get_coset_index(&query_uint, coset_size);
 
         verify_indices.push(coset_index);
 

@@ -1,3 +1,5 @@
+use core::panic;
+
 use alloc::boxed::Box;
 use alloc::{borrow::ToOwned, vec::Vec};
 use funvec::{dump, FunVec, FUNVEC_QUERIES};
@@ -56,7 +58,7 @@ pub fn fri_commit_rounds(
     let mut commitments = Vec::<TableCommitment>::new();
     let mut eval_points = Vec::<Felt>::new();
 
-    let len: usize = n_layers.to_biguint().try_into().unwrap();
+    let len: usize = funvec::cast_felt(&n_layers) as usize;
     for i in 0..len {
         // Read commitments.
         commitments.push(table_commit(
@@ -113,18 +115,18 @@ fn fri_verify_layers<'a>(
     step_sizes: &[Felt],
     // queries: &mut FunVec<FriLayerQuery, { FUNVEC_QUERIES * 3 }>,
 ) -> &'a [FriLayerQuery] {
-    let FriVerifyCache { fri_queries, .. } = cache;
+    let FriVerifyCache { fri_queries, next_layer_cache, decommitment, .. } = cache;
 
-    let len: usize = n_layers.to_biguint().try_into().unwrap();
+    let len: usize = funvec::cast_felt(&n_layers) as usize;
 
     for i in 0..len {
         let target_layer_witness = layer_witness.get_mut(i).unwrap();
-        let mut target_layer_witness_leaves = target_layer_witness.leaves.clone();
-        let target_layer_witness_table_withness = target_layer_witness.table_witness.clone();
-        let target_commitment = commitment.get(i).unwrap().clone();
+        let mut target_layer_witness_leaves = &mut target_layer_witness.leaves;
+        let target_layer_witness_table_withness = &target_layer_witness.table_witness;
+        let target_commitment = commitment.get(i).unwrap();
 
         // Params.
-        let coset_size = Box::new(Felt::TWO.pow_felt(step_sizes.get(i).unwrap()));
+        let coset_size = Felt::TWO.pow_felt(step_sizes.get(i).unwrap());
         let params = FriLayerComputationParams {
             coset_size: &coset_size,
             fri_group,
@@ -132,29 +134,26 @@ fn fri_verify_layers<'a>(
         };
 
         // Compute next layer queries.
-        compute_next_layer(
-            &mut cache.next_layer_cache,
-            fri_queries,
-            &mut target_layer_witness_leaves,
-            params,
-        )
-        .unwrap();
+        compute_next_layer(next_layer_cache, fri_queries, target_layer_witness_leaves, params)
+            .unwrap();
         let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } =
-            cache.next_layer_cache;
+            next_layer_cache;
+
+        decommitment.values.flush();
+        decommitment.montgomery_values.flush();
+        decommitment.values.extend(verify_y_values.as_slice());
+        for i in 0..verify_y_values.len() {
+            decommitment.montgomery_values.push(verify_y_values.get(i).unwrap() * MONTGOMERY_R);
+        }
 
         // Table decommitment.
-        // let _ = table_decommit(
-        //     &mut cache.commitment,
-        //     &target_commitment,
-        //     verify_indices.as_slice(),
-        //     &TableDecommitment {
-        //         montgomery_values: FunVec::from_vec(
-        //             verify_y_values.iter().map(|y| y * MONTGOMERY_R).collect(),
-        //         ),
-        //         values: verify_y_values,
-        //     },
-        //     &target_layer_witness_table_withness,
-        // );
+        let _ = table_decommit(
+            &mut cache.commitment,
+            &target_commitment,
+            verify_indices.as_slice(),
+            &decommitment,
+            &target_layer_witness_table_withness,
+        );
 
         fri_queries.flush();
         fri_queries.extend(next_queries.as_slice());
@@ -188,14 +187,14 @@ pub fn fri_verify(
     );
 
     // Compute fri_group.
-    let fri_group = get_fri_group();
+    let fri_group: &[Felt; 16] = &get_fri_group();
 
     let fri_step_sizes = commitment.config.fri_step_sizes.as_slice();
 
     // Verify inner layers.
     let last_queries = fri_verify_layers(
         cache,
-        &fri_group,
+        fri_group,
         commitment.config.n_layers - 1,
         &commitment.inner_layers,
         witness.layers.as_slice_mut(),

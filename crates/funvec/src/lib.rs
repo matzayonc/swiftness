@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use serde::{Deserialize, Deserializer, Serialize};
 use solana_program::log::sol_log_64;
+use starknet_crypto::Felt;
 
 pub const FUNVEC_LAYERS: usize = 5;
 pub const FUNVEC_OODS: usize = 256;
@@ -28,6 +29,15 @@ pub fn dump<T: Serialize>(value: &T, path: &str) {
     let path = &format!("{}.json", path);
     std::fs::write(path, serialized).unwrap();
     // println!("Dumped to {}", path);
+}
+
+pub fn cast_felt(felt: &Felt) -> u64 {
+    let digits = felt.to_be_digits();
+    if digits[0] != 0 || digits[1] != 0 || digits[2] != 0 {
+        panic!("Casting Felt({:?}) to u64 failed", digits);
+    }
+
+    digits[3]
 }
 
 #[inline(never)]

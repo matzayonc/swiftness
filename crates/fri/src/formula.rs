@@ -77,7 +77,7 @@ pub fn fri_formula(
     x_inv: Felt,
     coset_size: Felt,
 ) -> Result<Felt, Error> {
-    let coset_size: u64 = coset_size.to_biguint().try_into()?;
+    let coset_size: u64 = funvec::cast_felt(&coset_size);
     // Sort by usage frequency.
     match coset_size {
         2 => {

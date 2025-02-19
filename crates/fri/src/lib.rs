@@ -3,6 +3,7 @@
 use funvec::{FunVec, FUNVEC_AUTHENTICATIONS, FUNVEC_QUERIES};
 use layer::FriLayerQuery;
 use starknet_crypto::Felt;
+use swiftness_commitment::table::types::Decommitment as TableDecommitment;
 use swiftness_commitment::CacheCommitment;
 
 extern crate alloc;
@@ -31,6 +32,7 @@ pub struct FriVerifyCache {
     pub fri_queries: FriQueries,
     pub commitment: CacheCommitment,
     pub next_layer_cache: ComputeNextLayerCache,
+    pub decommitment: TableDecommitment,
 }
 
 #[derive(Debug, Clone, Copy, Default)]

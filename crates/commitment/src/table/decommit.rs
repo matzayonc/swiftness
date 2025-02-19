@@ -5,8 +5,6 @@ use crate::{
     vector::{decommit::vector_commitment_decommit, types::Query},
     CacheCommitment,
 };
-use alloc::boxed::Box;
-use alloc::vec::Vec;
 #[cfg(any(feature = "blake2s_160_lsb", feature = "blake2s_248_lsb"))]
 use blake2::{Blake2s256, Digest};
 use funvec::{print_address, print_frame};
@@ -29,7 +27,7 @@ pub fn table_decommit(
     // TODO: uncomment
     // An extra layer is added to the height since the table is considered as a layer, which is not
     // included in vector_commitment.config.
-    let bottom_layer_depth = Box::new(commitment.vector_commitment.config.height + 1);
+    let bottom_layer_depth = commitment.vector_commitment.config.height + 1;
 
     // Determine if the table commitment should use a verifier friendly hash function for the bottom
     // layer. The other layers' hash function will be determined in the vector_commitment logic.

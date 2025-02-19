@@ -1,16 +1,13 @@
-use core::panic;
-
 use super::types::{Commitment, Decommitment, Witness};
 use crate::{
     vector::{decommit::vector_commitment_decommit, types::Query},
     CacheCommitment,
 };
-#[cfg(any(feature = "blake2s_160_lsb", feature = "blake2s_248_lsb"))]
-use blake2::{Blake2s256, Digest};
-use funvec::{print_address, print_frame};
+// #[cfg(any(feature = "blake2s_160_lsb", feature = "blake2s_248_lsb"))]
+// use blake2::{Blake2s256, Digest};
+// #[cfg(any(feature = "keccak_160_lsb", feature = "keccak_248_lsb"))]
+// use sha3::{Digest, Keccak256};
 use num_bigint::{BigInt, TryFromBigIntError};
-#[cfg(any(feature = "keccak_160_lsb", feature = "keccak_248_lsb"))]
-use sha3::{Digest, Keccak256};
 use starknet_crypto::{poseidon_hash_many, Felt};
 
 pub const MONTGOMERY_R: Felt =

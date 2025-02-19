@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use starknet_core::types::NonZeroFelt;
 use starknet_crypto::Felt;
 

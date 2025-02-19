@@ -1,17 +1,11 @@
-use core::panic;
+use alloc::vec::Vec;
 
-use alloc::boxed::Box;
-use alloc::{borrow::ToOwned, vec::Vec};
-use funvec::{dump, FunVec, FUNVEC_QUERIES};
 use starknet_crypto::Felt;
-use swiftness_commitment::{
-    table::{
-        commit::table_commit,
-        config::Config as TableCommitmentConfig,
-        decommit::{table_decommit, MONTGOMERY_R},
-        types::{Commitment as TableCommitment, Decommitment as TableDecommitment},
-    },
-    CacheCommitment,
+use swiftness_commitment::table::{
+    commit::table_commit,
+    config::Config as TableCommitmentConfig,
+    decommit::{table_decommit, MONTGOMERY_R},
+    types::Commitment as TableCommitment,
 };
 use swiftness_transcript::transcript::Transcript;
 
@@ -21,10 +15,7 @@ use crate::{
     group::get_fri_group,
     last_layer::verify_last_layer,
     layer::{compute_next_layer, FriLayerComputationParams, FriLayerQuery},
-    types::{
-        self, Commitment as FriCommitment, Decommitment as FriDecommitment, DecommitmentRef,
-        LayerWitness, Witness,
-    },
+    types::{self, Commitment as FriCommitment, DecommitmentRef, LayerWitness, Witness},
     ComputeNextLayerCache, FriVerifyCache,
 };
 
@@ -121,7 +112,7 @@ fn fri_verify_layers<'a>(
 
     for i in 0..len {
         let target_layer_witness = layer_witness.get_mut(i).unwrap();
-        let mut target_layer_witness_leaves = &mut target_layer_witness.leaves;
+        let target_layer_witness_leaves = &mut target_layer_witness.leaves;
         let target_layer_witness_table_withness = &target_layer_witness.table_witness;
         let target_commitment = commitment.get(i).unwrap();
 
@@ -179,7 +170,7 @@ pub fn fri_verify(
     }
 
     // Compute first FRI layer queries.
-    let fri_queries = gather_first_layer_queries(
+    gather_first_layer_queries(
         &mut cache.fri_queries,
         queries,
         decommitment.values,

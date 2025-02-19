@@ -1,6 +1,6 @@
 #![no_std]
 
-use funvec::{FunVec, FUNVEC_AUTHENTICATIONS, FUNVEC_QUERIES};
+use funvec::{FunVec, FUNVEC_QUERIES};
 use layer::FriLayerQuery;
 use starknet_crypto::Felt;
 use swiftness_commitment::table::types::Decommitment as TableDecommitment;

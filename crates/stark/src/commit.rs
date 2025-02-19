@@ -1,8 +1,7 @@
-use alloc::vec::Vec;
 use funvec::FunBox;
 use starknet_crypto::Felt;
 use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
-use swiftness_commitment::{table::commit::table_commit, CacheCommitment};
+use swiftness_commitment::table::commit::table_commit;
 use swiftness_fri::fri::fri_commit;
 use swiftness_pow::pow;
 use swiftness_transcript::transcript::Transcript;
@@ -104,7 +103,7 @@ fn powers_array(powers_array: &mut [Felt], initial: Felt, alpha: Felt, n: u32) {
 use crate::{
     config::StarkConfig,
     oods::{self, verify_oods},
-    types::{Cache, CacheStark, StarkCommitment, StarkUnsentCommitment},
+    types::{CacheStark, StarkCommitment, StarkUnsentCommitment},
 };
 
 #[cfg(feature = "std")]

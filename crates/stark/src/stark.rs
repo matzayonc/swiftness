@@ -1,17 +1,15 @@
 use crate::{
     commit::stark_commit,
     queries::generate_queries,
-    types::{Cache, CacheStark, StarkProof, StarkWitness},
+    types::{Cache, StarkProof},
     verify::stark_verify,
 };
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use funvec::print_frame;
 use starknet_crypto::Felt;
 use swiftness_air::{
     domains::StarkDomains,
     layout::{GenericLayoutTrait, LayoutTrait, PublicInputError},
-    public_memory::PublicInput,
 };
 pub use swiftness_commitment::CacheCommitment;
 use swiftness_transcript::transcript::Transcript;
@@ -46,7 +44,7 @@ impl StarkProof {
             self.public_input.get_hash(self.config.n_verifier_friendly_commitment_layers),
         );
 
-        let Cache { stark, verify } = cache;
+        let Cache { stark, .. } = cache;
 
         // STARK commitment phase.
         let stark_commitment = Box::new(stark_commit::<Layout>(
@@ -80,8 +78,7 @@ impl StarkProof {
             &stark_domains,
         )?;
 
-        // Ok(Layout::verify_public_input(&self.public_input)?)
-        Ok((Felt::ZERO, Vec::new()))
+        Ok(Layout::verify_public_input(&self.public_input)?)
     }
 }
 

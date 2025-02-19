@@ -293,7 +293,7 @@ pub fn eval_composition_polynomial_inner(
 
     // Sum constraints.
     let mut total_sum = FELT_0;
-    let mut value = FELT_0;
+    let mut value;
 
     // Constraint: cpu/decode/opcode_range_check/bit.
     value = (cpu_decode_opcode_range_check_bit_0 * cpu_decode_opcode_range_check_bit_0

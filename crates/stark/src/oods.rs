@@ -1,12 +1,11 @@
 use alloc::vec::Vec;
-use funvec::{FunVec, FUNVEC_COLUMN_VALUES};
 use starknet_crypto::Felt;
 use swiftness_air::{
     layout::{CompositionPolyEvalError, LayoutTrait},
     public_memory::PublicInput,
     trace,
 };
-use swiftness_commitment::{table, CacheCommitment, CacheEvalOods};
+use swiftness_commitment::{table, CacheEvalOods};
 
 pub struct OodsEvaluationInfo<'a> {
     pub oods_values: &'a Vec<Felt>,

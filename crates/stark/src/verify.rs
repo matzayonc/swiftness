@@ -1,4 +1,3 @@
-use alloc::borrow::ToOwned;
 use starknet_crypto::Felt;
 use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
 use swiftness_commitment::{table::decommit::table_decommit, CacheCommitment};
@@ -10,7 +9,7 @@ use swiftness_fri::{
 use crate::{
     oods::{eval_oods_boundary_poly_at_points, OodsEvaluationInfo},
     queries::queries_to_points,
-    types::{Cache, CacheStark, StarkCommitment, StarkWitness},
+    types::{CacheStark, StarkCommitment, StarkWitness},
 };
 
 // STARK verify phase.

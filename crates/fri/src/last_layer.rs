@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use starknet_core::types::NonZeroFelt;
 use starknet_crypto::Felt;
 
@@ -6,11 +5,8 @@ use crate::layer::FriLayerQuery;
 
 // Verifies FRI last layer by evaluating the given polynomial on the given points
 // (=inverses of x_inv_values), and comparing the results to the given values.
-pub fn verify_last_layer(
-    mut quries: Vec<FriLayerQuery>,
-    coefficients: Vec<Felt>,
-) -> Result<(), Error> {
-    for query in quries.iter_mut() {
+pub fn verify_last_layer(quries: &[FriLayerQuery], coefficients: &[Felt]) -> Result<(), Error> {
+    for query in quries {
         let horner_eval_result = horner_eval(
             &coefficients,
             Felt::ONE.field_div(&NonZeroFelt::from_felt_unchecked(query.x_inv_value)),
@@ -19,6 +15,7 @@ pub fn verify_last_layer(
             return Err(Error::QueryMismatch { expected: query.y_value, got: horner_eval_result });
         }
     }
+
     Ok(())
 }
 

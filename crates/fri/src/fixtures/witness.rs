@@ -1,4 +1,5 @@
 use alloc::vec;
+use funvec::FunVec;
 
 use crate::types::{LayerWitness, Witness};
 use starknet_crypto::Felt;
@@ -9,9 +10,9 @@ use swiftness_commitment::{
 
 pub fn get() -> Witness {
     Witness {
-        layers: vec![
+        layers: FunVec::from_vec(vec![
             LayerWitness {
-                leaves: vec![
+                leaves: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x1d3ad0b704196dffcec14a46fecff3982a1fb70c9bc9da48516b993105d50de",
                     ),
@@ -462,10 +463,10 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x609698b0a6889f23c94cbf4ce29e7687474688bc9e2494964023b7b26de3800",
                     ),
-                ],
+                ]),
                 table_witness: TableCommitmentWitness {
                     vector: VectorCommitmentWitness {
-                        authentications: vec![
+                        authentications: FunVec::from_vec(vec![
                             Felt::from_hex_unchecked(
                                 "0x482b4ad723f3b3ee98152d387a6d49dea9d785684ea749c082fa896eb11ede5",
                             ),
@@ -826,12 +827,12 @@ pub fn get() -> Witness {
                             Felt::from_hex_unchecked(
                                 "0x112cd1570bc3000b0eb6edbddd50ffc2f535c4600a80a12dea2abd0294c9a38",
                             ),
-                        ],
+                        ]),
                     },
                 },
             },
             LayerWitness {
-                leaves: vec![
+                leaves: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x61aac3e5564be91456bd196eac62085407c23b25c2e5146fa49cca554b871cd",
                     ),
@@ -1042,10 +1043,10 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x3b82d657c8b34ec6c0e112d6dbf56a1374ae89884de90d6eb66e05a7eb7c425",
                     ),
-                ],
+                ]),
                 table_witness: TableCommitmentWitness {
                     vector: VectorCommitmentWitness {
-                        authentications: vec![
+                        authentications: FunVec::from_vec(vec![
                             Felt::from_hex_unchecked(
                                 "0x8dbc83acf21ddcc7cdb62a6863573dec66c6b2e48e9df939dd8a9d965d061b",
                             ),
@@ -1316,12 +1317,12 @@ pub fn get() -> Witness {
                             Felt::from_hex_unchecked(
                                 "0x746d9bf1e584a4c3425d2388110ebe1157282bffc58ce653d8c196ed452e245",
                             ),
-                        ],
+                        ]),
                     },
                 },
             },
             LayerWitness {
-                leaves: vec![
+                leaves: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x4d08279c0b89588d1f1180f86e288f3d5edae56c04a9f42b12e515db3ab37b3",
                     ),
@@ -1412,10 +1413,10 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x4bac2e6a444b3e6c5cef96fca5dc9ad7f113f77a5aae7ba4f4f48a1520f10f9",
                     ),
-                ],
+                ]),
                 table_witness: TableCommitmentWitness {
                     vector: VectorCommitmentWitness {
-                        authentications: vec![
+                        authentications: FunVec::from_vec(vec![
                             Felt::from_hex_unchecked(
                                 "0x28e16bad18659279a6867fe3161692ecc76dec80f57e998dc5b4f58d306ce66",
                             ),
@@ -1626,12 +1627,12 @@ pub fn get() -> Witness {
                             Felt::from_hex_unchecked(
                                 "0x715a61803bfea35f7e95219ac43f091065a788695257cafb950ff2ccd4e346",
                             ),
-                        ],
+                        ]),
                     },
                 },
             },
             LayerWitness {
-                leaves: vec![
+                leaves: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x3ced8c0e3d71da3d1ddd14241427f431dafdea753a2d41a8504ce1d4fa505e3",
                     ),
@@ -1722,10 +1723,10 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x2295c7c14c830c8c0fc75da0e6f96f385a89cefbe29c36ca7ca27b25789bb71",
                     ),
-                ],
+                ]),
                 table_witness: TableCommitmentWitness {
                     vector: VectorCommitmentWitness {
-                        authentications: vec![
+                        authentications: FunVec::from_vec(vec![
                             Felt::from_hex_unchecked(
                                 "0x2e9de49846b184d454c30e3b4854167583093da20c5ddef5e3ba2885524d006",
                             ),
@@ -1876,10 +1877,10 @@ pub fn get() -> Witness {
                             Felt::from_hex_unchecked(
                                 "0x2fd5a64db6093c9efda84ba327a43043e41310626073e58331c9f2f9f2db20f",
                             ),
-                        ],
+                        ]),
                     },
                 },
             },
-        ],
+        ]),
     }
 }

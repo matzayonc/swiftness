@@ -1,17 +1,24 @@
 use crate::{
-    commit::stark_commit, queries::generate_queries, types::StarkProof, verify::stark_verify,
+    commit::stark_commit,
+    queries::generate_queries,
+    types::{Cache, StarkProof},
+    verify::stark_verify,
 };
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use starknet_crypto::Felt;
 use swiftness_air::{
     domains::StarkDomains,
     layout::{GenericLayoutTrait, LayoutTrait, PublicInputError},
 };
+pub use swiftness_commitment::CacheCommitment;
 use swiftness_transcript::transcript::Transcript;
 
 impl StarkProof {
+    #[inline(always)]
     pub fn verify<Layout: GenericLayoutTrait + LayoutTrait>(
-        &self,
+        &mut self,
+        cache: &mut Cache,
         security_bits: Felt,
     ) -> Result<(Felt, Vec<Felt>), Error> {
         let n_original_columns =
@@ -32,18 +39,22 @@ impl StarkProof {
         Layout::validate_public_input(&self.public_input, &stark_domains)?;
 
         // Compute the initial hash seed for the Fiat-Shamir transcript.
-        let digest = self.public_input.get_hash(self.config.n_verifier_friendly_commitment_layers);
         // Construct the transcript.
-        let mut transcript = Transcript::new(digest);
+        let mut transcript = Transcript::new(
+            self.public_input.get_hash(self.config.n_verifier_friendly_commitment_layers),
+        );
+
+        let Cache { stark, .. } = cache;
 
         // STARK commitment phase.
-        let stark_commitment = stark_commit::<Layout>(
+        let stark_commitment = Box::new(stark_commit::<Layout>(
+            stark,
             &mut transcript,
             &self.public_input,
             &self.unsent_commitment,
             &self.config,
             &stark_domains,
-        )?;
+        )?);
 
         // Generate queries.
         let queries = generate_queries(
@@ -52,14 +63,18 @@ impl StarkProof {
             stark_domains.eval_domain_size,
         );
 
+        // Moves queries to the cache to free up memory.
+        let queries = cache.verify.queries.move_to(queries);
+
         // STARK verify phase.
         stark_verify::<Layout>(
+            stark,
             n_original_columns,
             n_interaction_columns,
             &self.public_input,
-            &queries,
-            stark_commitment,
-            &self.witness,
+            queries,
+            &stark_commitment,
+            &mut self.witness,
             &stark_domains,
         )?;
 

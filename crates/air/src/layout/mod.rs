@@ -2,31 +2,33 @@ use crate::{
     consts::{FELT_0, FELT_3},
     domains::StarkDomains,
     public_memory::PublicInput,
+    types::AddrValue,
 };
 use alloc::vec::Vec;
 use num_bigint::{BigInt, TryFromBigIntError};
 use starknet_core::types::NonZeroFelt;
 use starknet_crypto::{pedersen_hash, Felt};
 use starknet_types_core::felt::FeltIsZeroError;
+use swiftness_commitment::CacheCommitment;
 use swiftness_transcript::transcript::Transcript;
 
 mod errors;
 pub use errors::*;
 
-#[cfg(feature = "dex")]
-pub mod dex;
-#[cfg(feature = "dynamic")]
-pub mod dynamic;
+// #[cfg(feature = "dex")]
+// pub mod dex;
+// #[cfg(feature = "dynamic")]
+// pub mod dynamic;
 #[cfg(feature = "recursive")]
 pub mod recursive;
-#[cfg(feature = "recursive_with_poseidon")]
-pub mod recursive_with_poseidon;
-#[cfg(feature = "small")]
-pub mod small;
-#[cfg(feature = "starknet")]
-pub mod starknet;
-#[cfg(feature = "starknet_with_keccak")]
-pub mod starknet_with_keccak;
+// #[cfg(feature = "recursive_with_poseidon")]
+// pub mod recursive_with_poseidon;
+// #[cfg(feature = "small")]
+// pub mod small;
+// #[cfg(feature = "starknet")]
+// pub mod starknet;
+// #[cfg(feature = "starknet_with_keccak")]
+// pub mod starknet_with_keccak;
 
 // StarkCurve
 pub mod stark_curve {
@@ -55,6 +57,7 @@ pub trait LayoutTrait {
     const MASK_SIZE: usize;
 
     fn eval_composition_polynomial(
+        powers: &mut [Felt; 34],
         interaction_elements: &Self::InteractionElements,
         public_input: &PublicInput,
         mask_values: &[Felt],
@@ -65,6 +68,7 @@ pub trait LayoutTrait {
     ) -> Result<Felt, CompositionPolyEvalError>;
 
     fn eval_oods_polynomial(
+        powers: &mut [Felt; 72],
         public_input: &PublicInput,
         column_values: &[Felt],
         oods_values: &[Felt],
@@ -86,10 +90,11 @@ pub trait LayoutTrait {
     ) -> crate::trace::Commitment<Self::InteractionElements>;
 
     fn traces_decommit(
+        cache: &mut CacheCommitment,
         queries: &[Felt],
-        commitment: crate::trace::Commitment<Self::InteractionElements>,
-        decommitment: crate::trace::Decommitment,
-        witness: crate::trace::Witness,
+        commitment: &crate::trace::Commitment<Self::InteractionElements>,
+        decommitment: &crate::trace::Decommitment,
+        witness: &crate::trace::Witness,
     ) -> Result<(), crate::trace::decommit::Error>;
 
     fn verify_public_input(
@@ -121,19 +126,19 @@ pub fn safe_mult(value: Felt, multiplier: Felt) -> Result<Felt, SafeMultError> {
 }
 
 pub fn compute_program_hash(
-    memory: &[Felt],
+    memory: &[AddrValue],
     initial_pc: Felt,
     initial_fp: Felt,
 ) -> Result<Felt, TryFromBigIntError<BigInt>> {
-    let program: Vec<&Felt> = memory
-        .iter()
-        .skip(initial_pc.to_bigint().try_into()?)
-        .step_by(2)
-        .take((initial_fp - FELT_3).to_bigint().try_into()?)
-        .collect();
+    let initial_pc: usize = initial_pc.to_bigint().try_into()?;
+    let initial_fp: usize = (initial_fp - FELT_3).to_bigint().try_into()?;
 
-    let hash = program.iter().fold(FELT_0, |acc, &e| pedersen_hash(&acc, e));
-    let program_hash = pedersen_hash(&hash, &Felt::from(program.len()));
+    let mut program_hash = FELT_0;
+    for m in (initial_pc / 2)..initial_fp {
+        program_hash = pedersen_hash(&program_hash, &memory[m].value);
+    }
+
+    let program_hash = pedersen_hash(&program_hash, &Felt::from(initial_fp));
 
     Ok(program_hash)
 }

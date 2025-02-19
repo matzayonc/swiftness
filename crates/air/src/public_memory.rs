@@ -1,10 +1,11 @@
 use crate::{
     consts::{FELT_0, FELT_1, FELT_2},
     dynamic::DynamicParams,
-    types::{ContinuousPageHeader, Page, SegmentInfo},
+    types::{AddrValue, ContinuousPageHeader, Page, SegmentInfo},
 };
 use alloc::vec;
 use alloc::vec::Vec;
+use funvec::{FunVec, FUNVEC_SEGMENTS};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_core::types::NonZeroFelt;
@@ -16,7 +17,7 @@ pub const MAX_ADDRESS: Felt = Felt::from_hex_unchecked("0xffffffffffffffff");
 pub const INITIAL_PC: Felt = Felt::from_hex_unchecked("0x1");
 
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct PublicInput {
     #[cfg_attr(
         feature = "std",
@@ -40,7 +41,7 @@ pub struct PublicInput {
     pub layout: Felt,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dynamic_params: Option<DynamicParams>,
-    pub segments: Vec<SegmentInfo>,
+    pub segments: FunVec<SegmentInfo, FUNVEC_SEGMENTS>,
     #[cfg_attr(
         feature = "std",
         serde_as(as = "starknet_core::serde::unsigned_field_element::UfeHex")
@@ -52,8 +53,11 @@ pub struct PublicInput {
     )]
     pub padding_value: Felt,
     pub main_page: Page,
-    pub continuous_page_headers: Vec<ContinuousPageHeader>,
+    pub continuous_page_headers: FunVec<ContinuousPageHeader, 0>,
 }
+
+unsafe impl bytemuck::Zeroable for PublicInput {}
+unsafe impl bytemuck::Pod for PublicInput {}
 
 impl PublicInput {
     // Returns the ratio between the product of all public memory cells and z^|public_memory|.
@@ -83,10 +87,10 @@ impl PublicInput {
         let main_page_prod = self.main_page.get_product(z, alpha);
 
         let (continuous_pages_prod, continuous_pages_total_length) =
-            get_continuous_pages_product(&self.continuous_page_headers);
+            get_continuous_pages_product(&self.continuous_page_headers.as_slice());
 
         let prod = main_page_prod * continuous_pages_prod;
-        let total_length = Felt::from(self.main_page.len()) + continuous_pages_total_length;
+        let total_length = Felt::from(self.main_page.0.len()) + continuous_pages_total_length;
 
         (prod, total_length)
     }
@@ -94,12 +98,18 @@ impl PublicInput {
     #[cfg_attr(feature = "stone5", allow(unused_variables))]
     pub fn get_hash(&self, n_verifier_friendly_commitment_layers: Felt) -> Felt {
         let mut main_page_hash = FELT_0;
-        for memory in self.main_page.iter() {
-            main_page_hash = pedersen_hash(&main_page_hash, &memory.address);
-            main_page_hash = pedersen_hash(&main_page_hash, &memory.value);
+
+        #[inline]
+        fn hash_both(memory: &AddrValue, state: &Felt) -> Felt {
+            let state = pedersen_hash(&state, &memory.address);
+            pedersen_hash(&state, &memory.value)
+        }
+
+        for memory in self.main_page.0.iter() {
+            main_page_hash = hash_both(&memory, &main_page_hash);
         }
         main_page_hash =
-            pedersen_hash(&main_page_hash, &(FELT_2 * Felt::from(self.main_page.len())));
+            pedersen_hash(&main_page_hash, &(FELT_2 * Felt::from(self.main_page.0.len())));
 
         let mut hash_data = {
             #[cfg(feature = "stone5")]
@@ -131,7 +141,7 @@ impl PublicInput {
         hash_data.push(Felt::from(self.continuous_page_headers.len() + 1));
 
         // Main page.
-        hash_data.push(Felt::from(self.main_page.len()));
+        hash_data.push(Felt::from(self.main_page.0.len()));
         hash_data.push(main_page_hash);
 
         // Add the rest of the pages.

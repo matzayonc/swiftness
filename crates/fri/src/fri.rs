@@ -1,10 +1,11 @@
-use alloc::{borrow::ToOwned, vec::Vec};
+use alloc::vec::Vec;
+
 use starknet_crypto::Felt;
 use swiftness_commitment::table::{
     commit::table_commit,
     config::Config as TableCommitmentConfig,
-    decommit::table_decommit,
-    types::{Commitment as TableCommitment, Decommitment as TableDecommitment},
+    decommit::{table_decommit, MONTGOMERY_R},
+    types::Commitment as TableCommitment,
 };
 use swiftness_transcript::transcript::Transcript;
 
@@ -14,9 +15,8 @@ use crate::{
     group::get_fri_group,
     last_layer::verify_last_layer,
     layer::{compute_next_layer, FriLayerComputationParams, FriLayerQuery},
-    types::{
-        self, Commitment as FriCommitment, Decommitment as FriDecommitment, LayerWitness, Witness,
-    },
+    types::{self, Commitment as FriCommitment, DecommitmentRef, LayerWitness, Witness},
+    ComputeNextLayerCache, FriVerifyCache,
 };
 
 // A FRI phase with N layers starts with a single input layer.
@@ -49,7 +49,7 @@ pub fn fri_commit_rounds(
     let mut commitments = Vec::<TableCommitment>::new();
     let mut eval_points = Vec::<Felt>::new();
 
-    let len: usize = n_layers.to_biguint().try_into().unwrap();
+    let len: usize = funvec::cast_felt(&n_layers) as usize;
     for i in 0..len {
         // Read commitments.
         commitments.push(table_commit(
@@ -70,18 +70,17 @@ pub fn fri_commit(
     config: FriConfig,
 ) -> FriCommitment {
     assert!(config.n_layers > Felt::from(0), "Invalid value");
-    let inner_layers = config.inner_layers.clone();
 
     let (commitments, eval_points) = fri_commit_rounds(
         transcript,
         config.n_layers - 1,
-        inner_layers,
-        &unsent_commitment.inner_layers,
+        config.inner_layers.to_vec(),
+        &unsent_commitment.inner_layers.to_vec(),
     );
 
     // Read last layer coefficients.
-    transcript.read_felt_vector_from_prover(&unsent_commitment.last_layer_coefficients);
-    let coefficients = unsent_commitment.last_layer_coefficients;
+    transcript.read_felt_vector_from_prover(&unsent_commitment.last_layer_coefficients.as_slice());
+    let coefficients = unsent_commitment.last_layer_coefficients.to_vec();
 
     assert!(
         Felt::TWO.pow_felt(&config.log_last_layer_degree_bound) == coefficients.len().into(),
@@ -96,55 +95,72 @@ pub fn fri_commit(
     }
 }
 
-fn fri_verify_layers(
-    fri_group: Vec<Felt>,
+#[inline(always)]
+fn fri_verify_layers<'a>(
+    cache: &'a mut FriVerifyCache,
+    fri_group: &[Felt],
     n_layers: Felt,
-    commitment: Vec<TableCommitment>,
-    layer_witness: Vec<LayerWitness>,
-    eval_points: Vec<Felt>,
-    step_sizes: Vec<Felt>,
-    mut queries: Vec<FriLayerQuery>,
-) -> Vec<FriLayerQuery> {
-    let len: usize = n_layers.to_biguint().try_into().unwrap();
+    commitment: &[TableCommitment],
+    layer_witness: &mut [LayerWitness],
+    eval_points: &[Felt],
+    step_sizes: &[Felt],
+    // queries: &mut FunVec<FriLayerQuery, { FUNVEC_QUERIES * 3 }>,
+) -> &'a [FriLayerQuery] {
+    let FriVerifyCache { fri_queries, next_layer_cache, decommitment, .. } = cache;
+
+    let len: usize = funvec::cast_felt(&n_layers) as usize;
 
     for i in 0..len {
-        let target_layer_witness = layer_witness.get(i).unwrap();
-        let mut target_layer_witness_leaves = target_layer_witness.leaves.to_owned();
-        let target_layer_witness_table_withness = target_layer_witness.table_witness.to_owned();
-        let target_commitment = commitment.get(i).unwrap().clone();
+        let target_layer_witness = layer_witness.get_mut(i).unwrap();
+        let target_layer_witness_leaves = &mut target_layer_witness.leaves;
+        let target_layer_witness_table_withness = &target_layer_witness.table_witness;
+        let target_commitment = commitment.get(i).unwrap();
 
         // Params.
         let coset_size = Felt::TWO.pow_felt(step_sizes.get(i).unwrap());
         let params = FriLayerComputationParams {
-            coset_size,
-            fri_group: fri_group.clone(),
-            eval_point: *eval_points.get(i).unwrap(),
+            coset_size: &coset_size,
+            fri_group,
+            eval_point: eval_points.get(i).unwrap(),
         };
 
         // Compute next layer queries.
-        let (next_queries, verify_indices, verify_y_values) =
-            compute_next_layer(&mut queries, &mut target_layer_witness_leaves, params).unwrap();
+        compute_next_layer(next_layer_cache, fri_queries, target_layer_witness_leaves, params)
+            .unwrap();
+        let ComputeNextLayerCache { next_queries, verify_indices, verify_y_values, .. } =
+            next_layer_cache;
+
+        decommitment.values.flush();
+        decommitment.montgomery_values.flush();
+        decommitment.values.extend(verify_y_values.as_slice());
+        for i in 0..verify_y_values.len() {
+            decommitment.montgomery_values.push(verify_y_values.get(i).unwrap() * MONTGOMERY_R);
+        }
 
         // Table decommitment.
         let _ = table_decommit(
-            target_commitment,
-            &verify_indices,
-            TableDecommitment { values: verify_y_values },
-            target_layer_witness_table_withness,
+            &mut cache.commitment,
+            &target_commitment,
+            verify_indices.as_slice(),
+            &decommitment,
+            &target_layer_witness_table_withness,
         );
 
-        queries = next_queries;
+        fri_queries.flush();
+        fri_queries.extend(next_queries.as_slice());
     }
 
-    queries
+    fri_queries.as_slice()
 }
 
 // FRI protocol component decommitment.
+#[inline(always)]
 pub fn fri_verify(
+    cache: &mut FriVerifyCache,
     queries: &[Felt],
-    commitment: FriCommitment,
-    decommitment: FriDecommitment,
-    witness: Witness,
+    commitment: &FriCommitment,
+    decommitment: &DecommitmentRef,
+    witness: &mut Witness,
 ) -> Result<(), Error> {
     if queries.len() != decommitment.values.len() {
         return Err(Error::InvalidLength {
@@ -154,20 +170,28 @@ pub fn fri_verify(
     }
 
     // Compute first FRI layer queries.
-    let fri_queries = gather_first_layer_queries(queries, decommitment.values, decommitment.points);
+    gather_first_layer_queries(
+        &mut cache.fri_queries,
+        queries,
+        decommitment.values,
+        decommitment.points,
+    );
 
     // Compute fri_group.
-    let fri_group = get_fri_group();
+    let fri_group: &[Felt; 16] = &get_fri_group();
+
+    let fri_step_sizes = commitment.config.fri_step_sizes.as_slice();
 
     // Verify inner layers.
     let last_queries = fri_verify_layers(
+        cache,
         fri_group,
         commitment.config.n_layers - 1,
-        commitment.inner_layers,
-        witness.layers,
-        commitment.eval_points,
-        commitment.config.fri_step_sizes[1..commitment.config.fri_step_sizes.len()].to_vec(),
-        fri_queries,
+        &commitment.inner_layers,
+        witness.layers.as_slice_mut(),
+        &commitment.eval_points,
+        &fri_step_sizes[1..fri_step_sizes.len()],
+        // fri_queries,
     );
 
     if Felt::from(commitment.last_layer_coefficients.len())
@@ -176,8 +200,9 @@ pub fn fri_verify(
         return Err(Error::InvalidValue);
     };
 
-    verify_last_layer(last_queries, commitment.last_layer_coefficients)
+    verify_last_layer(last_queries, &commitment.last_layer_coefficients)
         .map_err(|_| Error::LastLayerVerificationError)?;
+
     Ok(())
 }
 

@@ -1122,7 +1122,7 @@ fn test_verify_last_layer1() {
         )
         .unwrap(),
     ];
-    assert!(verify_last_layer(queries, coefficients).is_ok())
+    assert!(verify_last_layer(&queries, &coefficients).is_ok())
 }
 
 #[test]
@@ -2244,5 +2244,5 @@ fn test_verify_last_layer2() {
         )
         .unwrap(),
     ];
-    assert!(verify_last_layer(queries, coefficients).is_err())
+    assert!(verify_last_layer(&queries, &coefficients).is_err())
 }

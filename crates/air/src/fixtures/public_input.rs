@@ -3,6 +3,7 @@ use crate::{
     types::{AddrValue, Page, SegmentInfo},
 };
 use alloc::vec;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 
 pub fn get() -> PublicInput {
@@ -12,7 +13,7 @@ pub fn get() -> PublicInput {
         range_check_max: Felt::from_hex_unchecked("0x8001"),
         layout: Felt::from_hex_unchecked("0x726563757273697665"),
         dynamic_params: None,
-        segments: vec![
+        segments: FunVec::from_vec(vec![
             SegmentInfo {
                 begin_addr: Felt::from_hex_unchecked("0x1"),
                 stop_ptr: Felt::from_hex_unchecked("0x5"),
@@ -37,10 +38,10 @@ pub fn get() -> PublicInput {
                 begin_addr: Felt::from_hex_unchecked("0x9ea"),
                 stop_ptr: Felt::from_hex_unchecked("0x9ea"),
             },
-        ],
+        ]),
         padding_addr: Felt::from_hex_unchecked("0x1"),
         padding_value: Felt::from_hex_unchecked("0x40780017fff7fff"),
-        main_page: Page(vec![
+        main_page: Page(FunVec::from_vec(vec![
             AddrValue {
                 address: Felt::from_hex_unchecked("0x1"),
                 value: Felt::from_hex_unchecked("0x40780017fff7fff"),
@@ -229,7 +230,7 @@ pub fn get() -> PublicInput {
                 address: Felt::from_hex_unchecked("0x69"),
                 value: Felt::from_hex_unchecked("0x90"),
             },
-        ]),
-        continuous_page_headers: vec![],
+        ])),
+        continuous_page_headers: FunVec::from_vec(vec![]),
     }
 }

@@ -1,5 +1,6 @@
 use crate::config::Config;
 use alloc::vec;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_commitment::{table, vector};
 
@@ -7,7 +8,7 @@ pub fn get() -> Config {
     Config {
         log_input_size: Felt::from_hex_unchecked("0x14"),
         n_layers: Felt::from_hex_unchecked("0x5"),
-        inner_layers: vec![
+        inner_layers: FunVec::from_vec(vec![
             table::config::Config {
                 n_columns: Felt::from_hex_unchecked("0x10"),
                 vector: vector::config::Config {
@@ -36,14 +37,14 @@ pub fn get() -> Config {
                     n_verifier_friendly_commitment_layers: Felt::from_hex_unchecked("0x64"),
                 },
             },
-        ],
-        fri_step_sizes: vec![
+        ]),
+        fri_step_sizes: FunVec::from_vec(vec![
             Felt::from_hex_unchecked("0x0"),
             Felt::from_hex_unchecked("0x4"),
             Felt::from_hex_unchecked("0x3"),
             Felt::from_hex_unchecked("0x2"),
             Felt::from_hex_unchecked("0x2"),
-        ],
+        ]),
         log_last_layer_degree_bound: Felt::from_hex_unchecked("0x7"),
     }
 }

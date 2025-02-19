@@ -1,11 +1,12 @@
-use alloc::vec::Vec;
 use core::ops::Deref;
+
+use funvec::{FunVec, FUNVEC_PAGES};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_crypto::Felt;
 
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct SegmentInfo {
     // Start address of the memory segment.
     #[cfg_attr(
@@ -22,7 +23,7 @@ pub struct SegmentInfo {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AddrValue {
     #[cfg_attr(
         feature = "std",
@@ -36,11 +37,11 @@ pub struct AddrValue {
     pub value: Felt,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Page(pub Vec<AddrValue>);
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Page(pub FunVec<AddrValue, FUNVEC_PAGES>);
 
 impl Deref for Page {
-    type Target = Vec<AddrValue>;
+    type Target = FunVec<AddrValue, FUNVEC_PAGES>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -55,7 +56,7 @@ impl Page {
             if i == self.len() {
                 break res;
             }
-            let current = &self[i];
+            let current = &self.as_slice()[i];
 
             res *= z - (current.address + alpha * current.value);
             i += 1;
@@ -73,7 +74,7 @@ impl Page {
 //   z     = interaction_elements.memory_multi_column_perm_perm__interaction_elm
 //   alpha = interaction_elements.memory_multi_column_perm_hash_interaction_elm0
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ContinuousPageHeader {
     // Start address.
     #[cfg_attr(

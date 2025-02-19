@@ -1,5 +1,6 @@
 use crate::trace::Witness;
 use alloc::vec;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_commitment::{table, vector};
 
@@ -7,7 +8,7 @@ pub fn get() -> Witness {
     Witness {
         original: table::types::Witness {
             vector: vector::types::Witness {
-                authentications: vec![
+                authentications: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x6732ed418f24c6da3dd615ee87b95896d7b019fc0a47a7bdbd22080a10601a8",
                     ),
@@ -488,12 +489,12 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x3a30fc5f86d8991365c4b32a67a38acf28b8a4a6db00ae0a2fd9b7dd6da2df6",
                     ),
-                ],
+                ]),
             },
         },
         interaction: table::types::Witness {
             vector: vector::types::Witness {
-                authentications: vec![
+                authentications: FunVec::from_vec(vec![
                     Felt::from_hex_unchecked(
                         "0x76b789ba37b249ed446240d80a657fd3a5216fdef370ac2e67966da1781f111",
                     ),
@@ -974,7 +975,7 @@ pub fn get() -> Witness {
                     Felt::from_hex_unchecked(
                         "0x39ba80681bf41d02a2af546a30ca8a2c22386d2c3059006da659f8a5ef4c917",
                     ),
-                ],
+                ]),
             },
         },
     }

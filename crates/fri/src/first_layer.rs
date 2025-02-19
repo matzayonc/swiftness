@@ -1,18 +1,18 @@
-use alloc::vec::Vec;
 use starknet_core::types::NonZeroFelt;
 use starknet_crypto::Felt;
 
-use crate::layer::FriLayerQuery;
+use crate::{layer::FriLayerQuery, FriQueries};
 
 const FIELD_GENERATOR_INVERSE: Felt =
     Felt::from_hex_unchecked("0x2AAAAAAAAAAAAB0555555555555555555555555555555555555555555555556");
 
-pub fn gather_first_layer_queries(
+pub fn gather_first_layer_queries<'a>(
+    fri_queries: &'a mut FriQueries,
     queries: &[Felt],
-    evaluations: Vec<Felt>,
-    x_values: Vec<Felt>,
-) -> Vec<FriLayerQuery> {
-    let mut fri_queries = Vec::new();
+    evaluations: &[Felt],
+    x_values: &[Felt],
+) {
+    fri_queries.flush();
 
     for (index, query) in queries.iter().enumerate() {
         // Translate the coset to the homogenous group to have simple FRI equations.
@@ -24,6 +24,4 @@ pub fn gather_first_layer_queries(
             x_inv_value: Felt::ONE.field_div(&NonZeroFelt::from_felt_unchecked(shifted_x_value)),
         });
     }
-
-    fri_queries
 }

@@ -1,3 +1,4 @@
+use funvec::FunVec;
 use swiftness_air::{
     dynamic::DynamicParams,
     public_memory::PublicInput as PublicInputVerifier,
@@ -10,6 +11,7 @@ use swiftness_air::{
 use swiftness_commitment::{
     table::{
         config::Config as TableConfigVerifier,
+        decommit::MONTGOMERY_R,
         types::{
             Decommitment as TableDecommitmentVerifier, Witness as TableCommitmentWitnessVerifier,
         },
@@ -80,8 +82,12 @@ impl TransformTo<FriConfigVerifier> for stark_proof::FriConfig {
         FriConfigVerifier {
             log_input_size: self.log_input_size.into(),
             n_layers: self.n_layers.into(),
-            inner_layers: self.inner_layers.into_iter().map(|x| x.transform_to()).collect(),
-            fri_step_sizes: self.fri_step_sizes.into_iter().map(|x| x.into()).collect(),
+            inner_layers: FunVec::from_vec(
+                self.inner_layers.into_iter().map(|x| x.transform_to()).collect(),
+            ),
+            fri_step_sizes: FunVec::from_vec(
+                self.fri_step_sizes.into_iter().map(|x| x.into()).collect(),
+            ),
             log_last_layer_degree_bound: self.log_last_layer_degree_bound.into(),
         }
     }
@@ -129,11 +135,15 @@ impl TransformTo<PublicInputVerifier> for stark_proof::PublicInput {
             range_check_max: self.range_check_max.into(),
             layout: self.layout.into(),
             dynamic_params,
-            segments: self.segments.into_iter().map(|x| x.transform_to()).collect(),
+            segments: FunVec::from_vec(
+                self.segments.into_iter().map(|x| x.transform_to()).collect(),
+            ),
             padding_addr: self.padding_addr.into(),
             padding_value: self.padding_value.into(),
-            main_page: Page(self.main_page.into_iter().map(|x| x.transform_to()).collect()),
-            continuous_page_headers: vec![],
+            main_page: Page(FunVec::from_vec(
+                self.main_page.into_iter().map(|x| x.transform_to()).collect(),
+            )),
+            continuous_page_headers: FunVec::from_vec(vec![]),
         }
     }
 }
@@ -155,7 +165,7 @@ impl TransformTo<StarkUnsentCommitmentVerifier> for stark_proof::StarkUnsentComm
         StarkUnsentCommitmentVerifier {
             traces: self.traces.transform_to(),
             composition: self.composition.into(),
-            oods_values: self.oods_values.into_iter().map(|x| x.into()).collect(),
+            oods_values: FunVec::from_vec(self.oods_values.into_iter().map(|x| x.into()).collect()),
             fri: self.fri.transform_to(),
             proof_of_work: self.proof_of_work.transform_to(),
         }
@@ -174,12 +184,12 @@ impl TransformTo<TraceUnsentCommitmentVerifier> for stark_proof::TracesUnsentCom
 impl TransformTo<FriUnsentCommitmentVerifier> for stark_proof::FriUnsentCommitment {
     fn transform_to(self) -> FriUnsentCommitmentVerifier {
         FriUnsentCommitmentVerifier {
-            last_layer_coefficients: self
-                .last_layer_coefficients
-                .into_iter()
-                .map(|x| x.into())
-                .collect(),
-            inner_layers: self.inner_layers.into_iter().map(|x| x.into()).collect(),
+            last_layer_coefficients: FunVec::from_vec(
+                self.last_layer_coefficients.into_iter().map(|x| x.into()).collect(),
+            ),
+            inner_layers: FunVec::from_vec(
+                self.inner_layers.into_iter().map(|x| x.into()).collect(),
+            ),
         }
     }
 }
@@ -213,7 +223,11 @@ impl TransformTo<TraceDecommitmentVerifier> for stark_proof::TracesDecommitment 
 
 impl TransformTo<TableDecommitmentVerifier> for stark_proof::TableDecommitment {
     fn transform_to(self) -> TableDecommitmentVerifier {
-        TableDecommitmentVerifier { values: self.values.into_iter().map(|x| x.into()).collect() }
+        let values = self.values.into_iter().map(|x| x.into()).collect::<Vec<_>>();
+        TableDecommitmentVerifier {
+            montgomery_values: FunVec::from_vec(values.iter().map(|x| x * MONTGOMERY_R).collect()),
+            values: FunVec::from_vec(values),
+        }
     }
 }
 
@@ -235,21 +249,25 @@ impl TransformTo<TableCommitmentWitnessVerifier> for stark_proof::TableCommitmen
 impl TransformTo<VectorCommitmentWitnessVerifier> for stark_proof::VectorCommitmentWitness {
     fn transform_to(self) -> VectorCommitmentWitnessVerifier {
         VectorCommitmentWitnessVerifier {
-            authentications: self.authentications.into_iter().map(|x| x.into()).collect(),
+            authentications: FunVec::from_vec(
+                self.authentications.into_iter().map(|x| x.into()).collect(),
+            ),
         }
     }
 }
 
 impl TransformTo<FriWitnessVerifier> for stark_proof::FriWitness {
     fn transform_to(self) -> FriWitnessVerifier {
-        FriWitnessVerifier { layers: self.layers.into_iter().map(|x| x.transform_to()).collect() }
+        FriWitnessVerifier {
+            layers: FunVec::from_vec(self.layers.into_iter().map(|x| x.transform_to()).collect()),
+        }
     }
 }
 
 impl TransformTo<LayerWitness> for stark_proof::FriLayerWitness {
     fn transform_to(self) -> LayerWitness {
         LayerWitness {
-            leaves: self.leaves.into_iter().map(|x| x.into()).collect(),
+            leaves: FunVec::from_vec(self.leaves.into_iter().map(|x| x.into()).collect()),
             table_witness: self.table_witness.transform_to(),
         }
     }
@@ -264,7 +282,9 @@ impl TransformTo<TableCommitmentWitnessVerifier> for stark_proof::TableCommitmen
 impl TransformTo<VectorCommitmentWitnessVerifier> for stark_proof::VectorCommitmentWitnessFlat {
     fn transform_to(self) -> VectorCommitmentWitnessVerifier {
         VectorCommitmentWitnessVerifier {
-            authentications: self.authentications.into_iter().map(|x| x.into()).collect(),
+            authentications: FunVec::from_vec(
+                self.authentications.into_iter().map(|x| x.into()).collect(),
+            ),
         }
     }
 }

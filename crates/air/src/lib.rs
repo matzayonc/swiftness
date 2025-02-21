@@ -15,6 +15,8 @@ pub mod public_memory;
 pub mod trace;
 pub mod types;
 
+pub use swiftness_transcript::transcript::Transcript;
+
 #[cfg(any(test, feature = "test_fixtures"))]
 pub mod fixtures;
 #[cfg(test)]

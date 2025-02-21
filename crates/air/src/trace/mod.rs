@@ -23,8 +23,8 @@ pub struct UnsentCommitment {
 }
 
 // Commitment for the Traces component.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Commitment<InteractionElements> {
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+pub struct Commitment<InteractionElements: Clone + Copy + Default> {
     // Commitment to the first trace.
     pub original: swiftness_commitment::table::types::Commitment,
     // The interaction elements that were sent to the prover after the first trace commitment (e.g.

@@ -50,7 +50,7 @@ pub mod stark_curve {
 }
 
 pub trait LayoutTrait {
-    type InteractionElements;
+    type InteractionElements: Clone + Copy + Default;
 
     const CONSTRAINT_DEGREE: usize;
     const N_CONSTRAINTS: usize;

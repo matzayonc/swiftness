@@ -2,6 +2,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use starknet_crypto::{poseidon_hash, poseidon_hash_many, Felt};
 
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Transcript {
     digest: Felt,
     counter: Felt,

@@ -49,10 +49,10 @@ pub fn stark_verify<Layout: LayoutTrait>(
 
     // Evaluate the FRI input layer at query points.
     let eval_info = OodsEvaluationInfo {
-        oods_values: &commitment.oods_values,
+        oods_values: &commitment.oods_values.as_slice().to_vec(),
         oods_point: &commitment.interaction_after_composition,
         trace_generator: &stark_domains.trace_generator,
-        constraint_coefficients: &commitment.interaction_after_oods,
+        constraint_coefficients: &commitment.interaction_after_oods.as_slice().to_vec(),
     };
     let oods_poly_evals = eval_oods_boundary_poly_at_points::<Layout>(
         eval_oods,

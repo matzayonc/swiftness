@@ -1,4 +1,4 @@
-use funvec::FunBox;
+use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
 use swiftness_commitment::table::commit::table_commit;
@@ -17,11 +17,8 @@ pub fn stark_commit<Layout: LayoutTrait>(
 ) -> Result<StarkCommitment<Layout::InteractionElements>, Error> {
     // Read the commitment of the 'traces' component.
 
-    let traces_commitment = FunBox::new(Layout::traces_commit(
-        transcript,
-        &unsent_commitment.traces,
-        config.traces.clone(),
-    ));
+    let traces_commitment =
+        Layout::traces_commit(transcript, &unsent_commitment.traces, config.traces.clone());
 
     // Generate interaction values after traces commitment.
     let composition_alpha = transcript.random_felt_to_prover();
@@ -35,11 +32,8 @@ pub fn stark_commit<Layout: LayoutTrait>(
         cache.powers_array.powers_array.unchecked_slice(Layout::N_CONSTRAINTS);
 
     // Read composition commitment.
-    let composition_commitment = FunBox::new(table_commit(
-        transcript,
-        unsent_commitment.composition,
-        config.composition.clone(),
-    ));
+    let composition_commitment =
+        table_commit(transcript, unsent_commitment.composition, config.composition.clone());
 
     // Generate interaction values after composition.
     let interaction_after_composition = transcript.random_felt_to_prover();
@@ -73,8 +67,7 @@ pub fn stark_commit<Layout: LayoutTrait>(
     let oods_coefficients = cache.powers_array.powers_array.unchecked_slice(n);
 
     // Read fri commitment.
-    let fri_commitment =
-        FunBox::new(fri_commit(transcript, unsent_commitment.fri.clone(), config.fri.clone()));
+    let fri_commitment = fri_commit(transcript, unsent_commitment.fri.clone(), config.fri.clone());
 
     // Proof of work commitment phase.
     unsent_commitment.proof_of_work.commit(transcript, &config.proof_of_work)?;
@@ -84,8 +77,8 @@ pub fn stark_commit<Layout: LayoutTrait>(
         traces: traces_commitment,
         composition: composition_commitment,
         interaction_after_composition,
-        oods_values: unsent_commitment.oods_values.to_vec(),
-        interaction_after_oods: oods_coefficients.to_vec(),
+        oods_values: FunVec::from_vec(unsent_commitment.oods_values.to_vec()),
+        interaction_after_oods: FunVec::from_vec(oods_coefficients.to_vec()),
         fri: fri_commitment,
     })
 }

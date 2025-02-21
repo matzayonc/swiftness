@@ -6,7 +6,7 @@ use serde_with::serde_as;
 use starknet_crypto::Felt;
 
 // Commitment for a table (n_rows x n_columns) of field elements in montgomery form.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Commitment {
     pub config: Config,
     pub vector_commitment: vector::types::Commitment,

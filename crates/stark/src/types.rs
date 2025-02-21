@@ -1,5 +1,4 @@
-use alloc::vec::Vec;
-use funvec::{FunBox, FunVec, FUNVEC_OODS, FUNVEC_QUERIES};
+use funvec::{FunVec, FUNVEC_OODS, FUNVEC_QUERIES};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 pub use starknet_crypto::Felt;
@@ -85,10 +84,10 @@ unsafe impl bytemuck::Zeroable for StarkUnsentCommitment {}
 unsafe impl bytemuck::Pod for StarkUnsentCommitment {}
 
 #[serde_as]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct StarkCommitment<InteractionElements> {
-    pub traces: FunBox<swiftness_air::trace::Commitment<InteractionElements>>,
-    pub composition: FunBox<swiftness_commitment::table::types::Commitment>,
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+pub struct StarkCommitment<InteractionElements: Clone + Copy + Default> {
+    pub traces: swiftness_air::trace::Commitment<InteractionElements>,
+    pub composition: swiftness_commitment::table::types::Commitment,
     #[cfg_attr(
         feature = "std",
         serde_as(as = "starknet_core::serde::unsigned_field_element::UfeHex")
@@ -98,13 +97,13 @@ pub struct StarkCommitment<InteractionElements> {
         feature = "std",
         serde_as(as = "Vec<starknet_core::serde::unsigned_field_element::UfeHex>")
     )]
-    pub oods_values: Vec<Felt>,
+    pub oods_values: FunVec<Felt, FUNVEC_OODS>,
     #[cfg_attr(
         feature = "std",
         serde_as(as = "Vec<starknet_core::serde::unsigned_field_element::UfeHex>")
     )]
-    pub interaction_after_oods: Vec<Felt>,
-    pub fri: FunBox<swiftness_fri::types::Commitment>,
+    pub interaction_after_oods: FunVec<Felt, FUNVEC_OODS>,
+    pub fri: swiftness_fri::types::Commitment,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]

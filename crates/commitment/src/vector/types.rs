@@ -6,7 +6,7 @@ use starknet_crypto::Felt;
 
 // Commitment for a vector of field elements.
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Commitment {
     pub config: Config,
     #[cfg_attr(
@@ -18,7 +18,7 @@ pub struct Commitment {
 
 // A query to the vector commitment.
 #[serde_as]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Query {
     #[cfg_attr(
         feature = "std",
@@ -34,7 +34,7 @@ pub struct Query {
 
 // A query to the vector commitment that contains also the depth of the query in the Merkle tree.
 #[serde_as]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct QueryWithDepth {
     #[cfg_attr(
         feature = "std",

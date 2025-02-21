@@ -26,24 +26,24 @@ pub struct UnsentCommitment {
 }
 
 #[serde_as]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Commitment {
     pub config: Config,
     // Array of size n_layers - 1 containing table commitments for each inner layer.
-    pub inner_layers: Vec<swiftness_commitment::table::types::Commitment>,
+    pub inner_layers: FunVec<swiftness_commitment::table::types::Commitment, FUNVEC_LAYERS>,
     // Array of size n_layers, of one evaluation point for each layer.
     #[cfg_attr(
         feature = "std",
         serde_as(as = "Vec<starknet_core::serde::unsigned_field_element::UfeHex>")
     )]
-    pub eval_points: Vec<Felt>,
+    pub eval_points: FunVec<Felt, 256>,
     // Array of size 2**log_last_layer_degree_bound containing coefficients for the last layer
     // polynomial.
     #[cfg_attr(
         feature = "std",
         serde_as(as = "Vec<starknet_core::serde::unsigned_field_element::UfeHex>")
     )]
-    pub last_layer_coefficients: Vec<Felt>,
+    pub last_layer_coefficients: FunVec<Felt, FUNVEC_LAST_LAYER>,
 }
 
 #[serde_as]

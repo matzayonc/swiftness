@@ -6,7 +6,7 @@ const FIELD_GENERATOR: Felt = Felt::from_hex_unchecked("0x3");
 const STARK_PRIME_MINUS_ONE: Felt =
     Felt::from_hex_unchecked("800000000000011000000000000000000000000000000000000000000000000");
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct StarkDomains {
     // Log2 of the evaluation domain size.
     pub log_eval_domain_size: Felt,

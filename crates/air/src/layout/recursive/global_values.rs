@@ -158,7 +158,7 @@ pub struct GlobalValues {
 // Elements that are sent from the prover after the commitment on the original trace.
 // Used for components after the first interaction, e.g., memory and range check.
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct InteractionElements {
     #[cfg_attr(
         feature = "std",

@@ -1,5 +1,6 @@
 use alloc::vec::Vec;
 
+use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_commitment::table::{
     commit::table_commit,
@@ -89,9 +90,9 @@ pub fn fri_commit(
 
     FriCommitment {
         config,
-        inner_layers: commitments,
-        eval_points,
-        last_layer_coefficients: coefficients,
+        inner_layers: FunVec::from_vec(commitments),
+        eval_points: FunVec::from_vec(eval_points),
+        last_layer_coefficients: FunVec::from_vec(coefficients),
     }
 }
 
@@ -187,9 +188,9 @@ pub fn fri_verify(
         cache,
         fri_group,
         commitment.config.n_layers - 1,
-        &commitment.inner_layers,
+        commitment.inner_layers.as_slice(),
         witness.layers.as_slice_mut(),
-        &commitment.eval_points,
+        commitment.eval_points.as_slice(),
         &fri_step_sizes[1..fri_step_sizes.len()],
         // fri_queries,
     );
@@ -200,7 +201,7 @@ pub fn fri_verify(
         return Err(Error::InvalidValue);
     };
 
-    verify_last_layer(last_queries, &commitment.last_layer_coefficients)
+    verify_last_layer(last_queries, commitment.last_layer_coefficients.as_slice())
         .map_err(|_| Error::LastLayerVerificationError)?;
 
     Ok(())

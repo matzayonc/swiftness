@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use starknet_crypto::Felt;
 use swiftness_air::{
     layout::{CompositionPolyEvalError, LayoutTrait},
@@ -8,10 +7,10 @@ use swiftness_air::{
 use swiftness_commitment::{table, CacheEvalOods};
 
 pub struct OodsEvaluationInfo<'a> {
-    pub oods_values: &'a Vec<Felt>,
+    pub oods_values: &'a [Felt],
     pub oods_point: &'a Felt,
     pub trace_generator: &'a Felt,
-    pub constraint_coefficients: &'a Vec<Felt>,
+    pub constraint_coefficients: &'a [Felt],
 }
 
 // Checks that the trace and the compostion agree at oods_point, assuming the prover provided us

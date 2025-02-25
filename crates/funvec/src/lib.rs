@@ -106,6 +106,11 @@ impl<T: Copy + Default, const N: usize> FunVec<T, N> {
         Self { len: vec.len(), data: s.data }
     }
 
+    pub fn overwrite(&mut self, slice: &[T]) {
+        self.flush();
+        self.extend(slice);
+    }
+
     pub fn to_vec(&self) -> Vec<T> {
         self.data[..self.len].to_vec()
     }

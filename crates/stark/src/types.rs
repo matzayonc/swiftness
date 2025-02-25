@@ -9,7 +9,7 @@ use crate::config;
 
 #[derive(Debug, Clone, Copy, Default, bytemuck::Zeroable, bytemuck::Pod)]
 #[repr(C)]
-pub struct Cache {
+pub struct LegacyCache {
     pub stark: CacheStark,
     pub verify: VerifyCache,
 }

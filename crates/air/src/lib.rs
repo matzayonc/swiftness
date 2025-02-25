@@ -15,6 +15,8 @@ pub mod public_memory;
 pub mod trace;
 pub mod types;
 
+pub use swiftness_commitment;
+pub use swiftness_commitment::table::types::{Commitment, Decommitment, Witness};
 pub use swiftness_transcript::transcript::Transcript;
 
 #[cfg(any(test, feature = "test_fixtures"))]

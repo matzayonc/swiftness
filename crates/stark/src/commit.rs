@@ -1,4 +1,3 @@
-use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
 use swiftness_commitment::table::commit::table_commit;
@@ -8,13 +7,14 @@ use swiftness_transcript::transcript::Transcript;
 
 // STARK commitment phase.
 pub fn stark_commit<Layout: LayoutTrait>(
+    result: &mut StarkCommitment<Layout::InteractionElements>,
     cache: &mut CacheStark,
     transcript: &mut Transcript,
     public_input: &PublicInput,
     unsent_commitment: &StarkUnsentCommitment,
     config: &StarkConfig,
     stark_domains: &StarkDomains,
-) -> Result<StarkCommitment<Layout::InteractionElements>, Error> {
+) -> Result<(), Error> {
     // Read the commitment of the 'traces' component.
 
     let traces_commitment =
@@ -72,15 +72,34 @@ pub fn stark_commit<Layout: LayoutTrait>(
     // Proof of work commitment phase.
     unsent_commitment.proof_of_work.commit(transcript, &config.proof_of_work)?;
 
+    let StarkCommitment {
+        traces,
+        composition,
+        interaction_after_composition: interaction,
+        oods_values,
+        interaction_after_oods,
+        fri,
+    } = result;
+
     // Return commitment.
-    Ok(StarkCommitment {
-        traces: traces_commitment,
-        composition: composition_commitment,
-        interaction_after_composition,
-        oods_values: FunVec::from_vec(unsent_commitment.oods_values.to_vec()),
-        interaction_after_oods: FunVec::from_vec(oods_coefficients.to_vec()),
-        fri: fri_commitment,
-    })
+    *traces = traces_commitment;
+    *composition = composition_commitment;
+    *interaction = interaction_after_composition;
+    *fri = fri_commitment;
+
+    oods_values.overwrite(unsent_commitment.oods_values.as_slice());
+    interaction_after_oods.overwrite(&oods_coefficients);
+
+    // *result = StarkCommitment {
+    //     traces: traces_commitment,
+    //     composition: composition_commitment,
+    //     interaction_after_composition,
+    //     oods_values: FunVec::from_vec(unsent_commitment.oods_values.to_vec()),
+    //     interaction_after_oods: FunVec::from_vec(oods_coefficients.to_vec()),
+    //     fri: fri_commitment,
+    // };
+
+    Ok(())
 }
 
 fn powers_array(powers_array: &mut [Felt], initial: Felt, alpha: Felt, n: u32) {

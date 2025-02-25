@@ -1,10 +1,9 @@
 use crate::{
     commit::stark_commit,
     queries::generate_queries,
-    types::{Cache, StarkProof},
+    types::{LegacyCache, StarkCommitment, StarkProof},
     verify::stark_verify,
 };
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 use starknet_crypto::Felt;
 use swiftness_air::{
@@ -18,7 +17,7 @@ impl StarkProof {
     #[inline(always)]
     pub fn verify<Layout: GenericLayoutTrait + LayoutTrait>(
         &mut self,
-        cache: &mut Cache,
+        cache: &mut LegacyCache,
         security_bits: Felt,
     ) -> Result<(Felt, Vec<Felt>), Error> {
         let n_original_columns =
@@ -44,17 +43,20 @@ impl StarkProof {
             self.public_input.get_hash(self.config.n_verifier_friendly_commitment_layers),
         );
 
-        let Cache { stark, .. } = cache;
+        let LegacyCache { stark, .. } = cache;
+
+        let mut stark_commitment = StarkCommitment::<Layout::InteractionElements>::default();
 
         // STARK commitment phase.
-        let stark_commitment = Box::new(stark_commit::<Layout>(
+        stark_commit::<Layout>(
+            &mut stark_commitment,
             stark,
             &mut transcript,
             &self.public_input,
             &self.unsent_commitment,
             &self.config,
             &stark_domains,
-        )?);
+        )?;
 
         // Generate queries.
         let queries = generate_queries(

@@ -2,7 +2,7 @@ use starknet_crypto::Felt;
 
 // Returns the elements of the multiplicative subgroup of order 16, in bit-reversed order for the
 // cairo prime field. Note that the first 2^k elements correspond to the group of size 2^k.
-pub fn get_fri_group() -> [Felt; 16] {
+pub const fn get_fri_group() -> [Felt; 16] {
     [
         Felt::from_hex_unchecked("0x1"),
         Felt::from_hex_unchecked(
@@ -52,3 +52,5 @@ pub fn get_fri_group() -> [Felt; 16] {
         ),
     ]
 }
+
+pub const FRI_GROUP: [Felt; 16] = get_fri_group();

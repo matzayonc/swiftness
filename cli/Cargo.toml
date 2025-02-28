@@ -30,7 +30,7 @@ swiftness_stark = { path = "../crates/stark", default-features = false, features
 swiftness_proof_parser = { path = "../proof_parser", version = "1.0.0" }
 
 [features]
-default = ["recursive", "keccak_160_lsb", "stone5"]
+default = ["recursive_with_poseidon", "keccak_160_lsb", "stone5"]
 dex = ["swiftness_air/dex", "swiftness_stark/dex"]
 recursive = ["swiftness_air/recursive", "swiftness_stark/recursive"]
 recursive_with_poseidon = [

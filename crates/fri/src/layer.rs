@@ -2,10 +2,11 @@ use funvec::{FunVec, FUNVEC_AUTHENTICATIONS, FUNVEC_QUERIES};
 use serde::Serialize;
 use starknet_crypto::Felt;
 
+#[derive(Debug, Clone, Copy)]
 pub struct FriLayerComputationParams<'a> {
-    pub coset_size: &'a Felt,
+    pub coset_size: Felt,
     pub fri_group: &'a [Felt],
-    pub eval_point: &'a Felt,
+    pub eval_point: Felt,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -100,7 +101,7 @@ pub fn compute_next_layer(
         Felt::from(query_uint_u64 / coset_size_u64)
     }
 
-    let coset_size = params.coset_size;
+    let coset_size = &params.coset_size;
     while !queries.is_empty() {
         let query_uint = queries.at(0).index;
         let coset_index = get_coset_index(&query_uint, coset_size);
@@ -119,7 +120,7 @@ pub fn compute_next_layer(
         verify_y_values.extend(coset_elements.as_slice());
 
         let fri_formula_res =
-            fri_formula(coset_elements.as_slice(), *params.eval_point, coset_x_inv, *coset_size)?;
+            fri_formula(coset_elements.as_slice(), params.eval_point, coset_x_inv, *coset_size)?;
 
         let next_x_inv = coset_x_inv.pow_felt(&params.coset_size);
         next_queries.push(FriLayerQuery {

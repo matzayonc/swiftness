@@ -1,5 +1,11 @@
+use std::vec;
+
 use starknet_crypto::Felt;
-use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
+use swiftness_air::{
+    domains::StarkDomains,
+    layout::{recursive_with_poseidon::Layout, LayoutTrait},
+    public_memory::PublicInput,
+};
 use swiftness_commitment::{table::decommit::table_decommit, CacheCommitment};
 use swiftness_fri::{
     fri::{self, fri_verify},
@@ -14,13 +20,13 @@ use crate::{
 
 // STARK verify phase.
 #[inline(always)]
-pub fn stark_verify<Layout: LayoutTrait>(
+pub fn stark_verify(
     cache: &mut CacheStark,
     n_original_columns: u32,
     n_interaction_columns: u32,
     public_input: &PublicInput,
     queries: &[Felt],
-    commitment: &StarkCommitment<Layout::InteractionElements>,
+    commitment: &StarkCommitment,
     witness: &mut StarkWitness,
     stark_domains: &StarkDomains,
 ) -> Result<(), Error> {
@@ -54,8 +60,11 @@ pub fn stark_verify<Layout: LayoutTrait>(
         trace_generator: &stark_domains.trace_generator,
         constraint_coefficients: &commitment.interaction_after_oods.as_slice().to_vec(),
     };
+    let mut oods_poly_evals = vec![Felt::ZERO; points.len()];
+
     let oods_poly_evals = eval_oods_boundary_poly_at_points::<Layout>(
         eval_oods,
+        oods_poly_evals.as_mut_slice(),
         n_original_columns,
         n_interaction_columns,
         public_input,

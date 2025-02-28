@@ -1,13 +1,17 @@
 use starknet_crypto::Felt;
-use swiftness_air::{domains::StarkDomains, layout::LayoutTrait, public_memory::PublicInput};
+use swiftness_air::{
+    domains::StarkDomains,
+    layout::{recursive_with_poseidon::Layout, LayoutTrait},
+    public_memory::PublicInput,
+};
 use swiftness_commitment::table::commit::table_commit;
-use swiftness_fri::fri::fri_commit;
+use swiftness_fri::{fri::fri_commit, types::Commitment};
 use swiftness_pow::pow;
 use swiftness_transcript::transcript::Transcript;
 
 // STARK commitment phase.
-pub fn stark_commit<Layout: LayoutTrait>(
-    result: &mut StarkCommitment<Layout::InteractionElements>,
+pub fn stark_commit(
+    result: &mut StarkCommitment,
     cache: &mut CacheStark,
     transcript: &mut Transcript,
     public_input: &PublicInput,
@@ -67,7 +71,8 @@ pub fn stark_commit<Layout: LayoutTrait>(
     let oods_coefficients = cache.powers_array.powers_array.unchecked_slice(n);
 
     // Read fri commitment.
-    let fri_commitment = fri_commit(transcript, unsent_commitment.fri.clone(), config.fri.clone());
+    let mut fri_commitment = Commitment::default();
+    fri_commit(&mut fri_commitment, transcript, &unsent_commitment.fri, &config.fri);
 
     // Proof of work commitment phase.
     unsent_commitment.proof_of_work.commit(transcript, &config.proof_of_work)?;
@@ -90,19 +95,10 @@ pub fn stark_commit<Layout: LayoutTrait>(
     oods_values.overwrite(unsent_commitment.oods_values.as_slice());
     interaction_after_oods.overwrite(&oods_coefficients);
 
-    // *result = StarkCommitment {
-    //     traces: traces_commitment,
-    //     composition: composition_commitment,
-    //     interaction_after_composition,
-    //     oods_values: FunVec::from_vec(unsent_commitment.oods_values.to_vec()),
-    //     interaction_after_oods: FunVec::from_vec(oods_coefficients.to_vec()),
-    //     fri: fri_commitment,
-    // };
-
     Ok(())
 }
 
-fn powers_array(powers_array: &mut [Felt], initial: Felt, alpha: Felt, n: u32) {
+pub fn powers_array(powers_array: &mut [Felt], initial: Felt, alpha: Felt, n: u32) {
     // let mut array = Vec::with_capacity(n as usize);
     let mut value = initial;
 

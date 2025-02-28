@@ -27,12 +27,8 @@ crate-type = ["cdylib", "rlib"]
 getrandom = { version = "0.2.15", features = ["js"] }
 
 [features]
-default = ["recursive", "keccak_160_lsb", "stone5"]
-dex = [
-    "swiftness/dex",
-    "swiftness_air/dex",
-    "swiftness_stark/dex"
-]
+default = ["recursive_with_poseidon", "keccak_160_lsb", "stone5"]
+dex = ["swiftness/dex", "swiftness_air/dex", "swiftness_stark/dex"]
 recursive = [
     "swiftness/recursive",
     "swiftness_air/recursive",
@@ -43,15 +39,11 @@ recursive_with_poseidon = [
     "swiftness_air/recursive_with_poseidon",
     "swiftness_stark/recursive_with_poseidon",
 ]
-small = [
-    "swiftness/small",
-    "swiftness_air/small",
-    "swiftness_stark/small"
-]
+small = ["swiftness/small", "swiftness_air/small", "swiftness_stark/small"]
 starknet = [
     "swiftness/starknet",
     "swiftness_air/starknet",
-    "swiftness_stark/starknet"
+    "swiftness_stark/starknet",
 ]
 starknet_with_keccak = [
     "swiftness/starknet_with_keccak",
@@ -63,24 +55,10 @@ dynamic = [
     "swiftness_air/dynamic",
     "swiftness_stark/dynamic",
 ]
-stone5 = [
-    "swiftness/stone5",
-    "swiftness_air/stone5",
-    "swiftness_stark/stone5",
-]
-stone6 = [
-    "swiftness/stone6",
-    "swiftness_air/stone6",
-    "swiftness_stark/stone6",
-]
-keccak_160_lsb = [
-    "swiftness/keccak_160_lsb",
-    "swiftness_stark/keccak_160_lsb",
-]
-keccak_248_lsb = [
-    "swiftness/keccak_248_lsb",
-    "swiftness_stark/keccak_248_lsb",
-]
+stone5 = ["swiftness/stone5", "swiftness_air/stone5", "swiftness_stark/stone5"]
+stone6 = ["swiftness/stone6", "swiftness_air/stone6", "swiftness_stark/stone6"]
+keccak_160_lsb = ["swiftness/keccak_160_lsb", "swiftness_stark/keccak_160_lsb"]
+keccak_248_lsb = ["swiftness/keccak_248_lsb", "swiftness_stark/keccak_248_lsb"]
 blake2s_160_lsb = [
     "swiftness/blake2s_160_lsb",
     "swiftness_stark/blake2s_160_lsb",

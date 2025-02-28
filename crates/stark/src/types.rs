@@ -2,19 +2,20 @@ use funvec::{FunVec, FUNVEC_OODS, FUNVEC_QUERIES};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 pub use starknet_crypto::Felt;
+use swiftness_air::layout::{recursive_with_poseidon::Layout, LayoutTrait};
 use swiftness_commitment::CacheCommitment;
 use swiftness_fri::FriVerifyCache;
 
 use crate::config;
 
-#[derive(Debug, Clone, Copy, Default, bytemuck::Zeroable, bytemuck::Pod)]
+#[derive(Debug, Clone, Copy, Default, bytemuck::Zeroable, bytemuck::Pod, PartialEq)]
 #[repr(C)]
 pub struct LegacyCache {
     pub stark: CacheStark,
     pub verify: VerifyCache,
 }
 
-#[derive(Debug, Clone, Copy, Default, bytemuck::Zeroable, bytemuck::Pod)]
+#[derive(Debug, Clone, Copy, Default, bytemuck::Zeroable, bytemuck::Pod, PartialEq)]
 #[repr(C)]
 pub struct CacheStark {
     pub commitment: CacheCommitment,
@@ -22,7 +23,7 @@ pub struct CacheStark {
     pub powers_array: PowersArrayCache,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct PowersArrayCache {
     pub powers_array: FunVec<Felt, 256>,
@@ -31,7 +32,7 @@ pub struct PowersArrayCache {
 unsafe impl bytemuck::Pod for PowersArrayCache {}
 unsafe impl bytemuck::Zeroable for PowersArrayCache {}
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 #[repr(C)]
 pub struct VerifyCache {
     pub queries: FunVec<Felt, FUNVEC_QUERIES>,
@@ -85,8 +86,8 @@ unsafe impl bytemuck::Pod for StarkUnsentCommitment {}
 
 #[serde_as]
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
-pub struct StarkCommitment<InteractionElements: Clone + Copy + Default> {
-    pub traces: swiftness_air::trace::Commitment<InteractionElements>,
+pub struct StarkCommitment {
+    pub traces: swiftness_air::trace::Commitment<<Layout as LayoutTrait>::InteractionElements>,
     pub composition: swiftness_commitment::table::types::Commitment,
     #[cfg_attr(
         feature = "std",

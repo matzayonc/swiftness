@@ -19,10 +19,10 @@ pub use errors::*;
 // pub mod dex;
 // #[cfg(feature = "dynamic")]
 // pub mod dynamic;
-#[cfg(feature = "recursive")]
-pub mod recursive;
-// #[cfg(feature = "recursive_with_poseidon")]
-// pub mod recursive_with_poseidon;
+// #[cfg(feature = "recursive")]
+// pub mod recursive;
+#[cfg(feature = "recursive_with_poseidon")]
+pub mod recursive_with_poseidon;
 // #[cfg(feature = "small")]
 // pub mod small;
 // #[cfg(feature = "starknet")]
@@ -57,7 +57,7 @@ pub trait LayoutTrait {
     const MASK_SIZE: usize;
 
     fn eval_composition_polynomial(
-        powers: &mut [Felt; 34],
+        powers: &mut [Felt; 51],
         interaction_elements: &Self::InteractionElements,
         public_input: &PublicInput,
         mask_values: &[Felt],
@@ -68,7 +68,7 @@ pub trait LayoutTrait {
     ) -> Result<Felt, CompositionPolyEvalError>;
 
     fn eval_oods_polynomial(
-        powers: &mut [Felt; 72],
+        powers: &mut [Felt; 134],
         public_input: &PublicInput,
         column_values: &[Felt],
         oods_values: &[Felt],

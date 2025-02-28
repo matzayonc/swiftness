@@ -45,10 +45,10 @@ impl StarkProof {
 
         let LegacyCache { stark, .. } = cache;
 
-        let mut stark_commitment = StarkCommitment::<Layout::InteractionElements>::default();
+        let mut stark_commitment = StarkCommitment::default();
 
         // STARK commitment phase.
-        stark_commit::<Layout>(
+        stark_commit(
             &mut stark_commitment,
             stark,
             &mut transcript,
@@ -69,7 +69,7 @@ impl StarkProof {
         let queries = cache.verify.queries.move_to(queries);
 
         // STARK verify phase.
-        stark_verify::<Layout>(
+        stark_verify(
             stark,
             n_original_columns,
             n_interaction_columns,

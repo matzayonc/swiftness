@@ -1,6 +1,5 @@
 use alloc::vec::Vec;
 
-use funvec::FunVec;
 use starknet_crypto::Felt;
 use swiftness_commitment::table::{
     commit::table_commit,
@@ -66,16 +65,17 @@ pub fn fri_commit_rounds(
 }
 
 pub fn fri_commit(
+    result: &mut FriCommitment,
     transcript: &mut Transcript,
-    unsent_commitment: types::UnsentCommitment,
-    config: FriConfig,
-) -> FriCommitment {
-    assert!(config.n_layers > Felt::from(0), "Invalid value");
+    unsent_commitment: &types::UnsentCommitment,
+    fri_config: &FriConfig,
+) {
+    assert!(fri_config.n_layers > Felt::from(0), "Invalid value");
 
-    let (commitments, eval_points) = fri_commit_rounds(
+    let (commitments, result_eval_points) = fri_commit_rounds(
         transcript,
-        config.n_layers - 1,
-        config.inner_layers.to_vec(),
+        fri_config.n_layers - 1,
+        fri_config.inner_layers.to_vec(),
         &unsent_commitment.inner_layers.to_vec(),
     );
 
@@ -84,20 +84,26 @@ pub fn fri_commit(
     let coefficients = unsent_commitment.last_layer_coefficients.to_vec();
 
     assert!(
-        Felt::TWO.pow_felt(&config.log_last_layer_degree_bound) == coefficients.len().into(),
+        Felt::TWO.pow_felt(&fri_config.log_last_layer_degree_bound) == coefficients.len().into(),
         "Invalid value"
     );
 
-    FriCommitment {
-        config,
-        inner_layers: FunVec::from_vec(commitments),
-        eval_points: FunVec::from_vec(eval_points),
-        last_layer_coefficients: FunVec::from_vec(coefficients),
-    }
+    // FriCommitment {
+    //     config: fri_config,
+    //     inner_layers: FunVec::from_vec(commitments),
+    //     eval_points: FunVec::from_vec(eval_points),
+    //     last_layer_coefficients: FunVec::from_vec(coefficients),
+    // }
+
+    let FriCommitment { config, inner_layers, eval_points, last_layer_coefficients } = result;
+    *config = *fri_config;
+    inner_layers.overwrite(&commitments);
+    eval_points.overwrite(&result_eval_points);
+    last_layer_coefficients.overwrite(&coefficients);
 }
 
 #[inline(always)]
-fn fri_verify_layers<'a>(
+pub fn fri_verify_layers<'a>(
     cache: &'a mut FriVerifyCache,
     fri_group: &[Felt],
     n_layers: Felt,
@@ -120,9 +126,9 @@ fn fri_verify_layers<'a>(
         // Params.
         let coset_size = Felt::TWO.pow_felt(step_sizes.get(i).unwrap());
         let params = FriLayerComputationParams {
-            coset_size: &coset_size,
+            coset_size,
             fri_group,
-            eval_point: eval_points.get(i).unwrap(),
+            eval_point: *eval_points.get(i).unwrap(),
         };
 
         // Compute next layer queries.

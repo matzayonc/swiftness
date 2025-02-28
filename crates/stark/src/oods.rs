@@ -17,7 +17,7 @@ pub struct OodsEvaluationInfo<'a> {
 // with the proper evaluations.
 #[inline(always)]
 pub fn verify_oods<Layout: LayoutTrait>(
-    powers: &mut [Felt; 34],
+    powers: &mut [Felt; 51],
     oods: &[Felt],
     interaction_elements: &Layout::InteractionElements,
     public_input: &PublicInput,
@@ -77,6 +77,7 @@ pub enum OodsVerifyError {
 #[inline(always)]
 pub fn eval_oods_boundary_poly_at_points<'a, Layout: LayoutTrait>(
     eval_oods_cache: &'a mut CacheEvalOods,
+    evaluations: &'a mut [Felt],
     n_original_columns: u32,
     n_interaction_columns: u32,
     public_input: &PublicInput,
@@ -85,9 +86,9 @@ pub fn eval_oods_boundary_poly_at_points<'a, Layout: LayoutTrait>(
     decommitment: &trace::Decommitment,
     composition_decommitment: &table::types::Decommitment,
 ) -> &'a [Felt] {
-    let CacheEvalOods { powers, column_values, evaluations, .. } = eval_oods_cache;
-    let evaluations = evaluations.unchecked_slice_mut(points.len());
+    let CacheEvalOods { powers, column_values, .. } = eval_oods_cache;
 
+    assert_eq!(evaluations.len(), points.len());
     assert!(
         decommitment.original.values.len() as u32 == points.len() as u32 * n_original_columns,
         "Invalid value"

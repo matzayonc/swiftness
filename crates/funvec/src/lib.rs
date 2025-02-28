@@ -4,15 +4,15 @@ use serde::{Deserialize, Deserializer, Serialize};
 use solana_program::log::sol_log_64;
 use starknet_crypto::Felt;
 
-pub const FUNVEC_LAYERS: usize = 5;
+pub const FUNVEC_LAYERS: usize = 10;
 pub const FUNVEC_OODS: usize = 256;
-pub const FUNVEC_LEAVES: usize = 256;
-pub const FUNVEC_AUTHENTICATIONS: usize = 256;
+pub const FUNVEC_LEAVES: usize = 512;
+pub const FUNVEC_AUTHENTICATIONS: usize = 512;
 pub const FUNVEC_LAST_LAYER: usize = 256;
 pub const FUNVEC_DECOMMITMENT_VALUES: usize = 256;
 pub const FUNVEC_PAGES: usize = 1024;
 pub const FUNVEC_SEGMENTS: usize = 12;
-pub const FUNVEC_QUERIES: usize = 128;
+pub const FUNVEC_QUERIES: usize = 256;
 pub const FUNVEC_COLUMN_VALUES: usize = 15;
 pub fn print_address<T>(address: &T, label: u64) {
     sol_log_64(
@@ -70,7 +70,7 @@ pub fn print_frame(i: u64, label: u64) {
     // print_frame(i + 1);
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FunVec<T: Default, const N: usize> {
     len: usize,
     data: [T; N],
@@ -133,6 +133,11 @@ impl<T: Copy + Default, const N: usize> FunVec<T, N> {
 
     pub fn unchecked_slice_mut(&mut self, len: usize) -> &mut [T] {
         &mut self.data[..len]
+    }
+
+    pub fn to_size_uninitialized(&mut self, len: usize) -> &mut [T] {
+        self.len = len;
+        self.as_slice_mut()
     }
 
     pub fn len(&self) -> usize {

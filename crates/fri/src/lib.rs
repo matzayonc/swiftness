@@ -27,7 +27,7 @@ pub mod tests;
 
 pub type FriQueries = FunVec<FriLayerQuery, { FUNVEC_QUERIES * 3 }>;
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct FriVerifyCache {
     pub fri_queries: FriQueries,
     pub commitment: CacheCommitment,
@@ -35,7 +35,7 @@ pub struct FriVerifyCache {
     pub decommitment: TableDecommitment,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ComputeNextLayerCache {
     pub next_queries: FunVec<FriLayerQuery, 256>,
     pub verify_indices: FunVec<Felt, 256>,

@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use super::types::{Commitment, Decommitment, Witness};
 use crate::{
     vector::{decommit::vector_commitment_decommit, types::Query},
@@ -8,6 +10,7 @@ use crate::{
 // #[cfg(any(feature = "keccak_160_lsb", feature = "keccak_248_lsb"))]
 // use sha3::{Digest, Keccak256};
 use num_bigint::{BigInt, TryFromBigIntError};
+use sha3::{Digest, Keccak256};
 use starknet_crypto::{poseidon_hash_many, Felt};
 
 pub const MONTGOMERY_R: Felt =
@@ -85,35 +88,34 @@ fn generate_vector_queries<'a>(
             let slice = &values[(i * n_columns as usize)..((i + 1) * n_columns as usize)];
             poseidon_hash_many(slice)
         } else {
-            unimplemented!("big allocations would not fit on Solana");
-            // let slice = &values[(i * n_columns as usize)..((i + 1) * n_columns as usize)];
-            // let mut data = Vec::new();
-            // data.extend(slice.iter().flat_map(|x| x.to_bytes_be().to_vec()));
+            let slice = &values[(i * n_columns as usize)..((i + 1) * n_columns as usize)];
+            let mut data = Vec::new();
+            data.extend(slice.iter().flat_map(|x| x.to_bytes_be().to_vec()));
 
-            // let mut hasher = {
-            //     #[cfg(any(feature = "keccak_160_lsb", feature = "keccak_248_lsb"))]
-            //     {
-            //         Keccak256::new()
-            //     }
-            //     #[cfg(any(feature = "blake2s_160_lsb", feature = "blake2s_248_lsb"))]
-            //     {
-            //         Blake2s256::new()
-            //     }
-            // };
+            let mut hasher = {
+                #[cfg(any(feature = "keccak_160_lsb", feature = "keccak_248_lsb"))]
+                {
+                    Keccak256::new()
+                }
+                #[cfg(any(feature = "blake2s_160_lsb", feature = "blake2s_248_lsb"))]
+                {
+                    Blake2s256::new()
+                }
+            };
 
-            // hasher.update(&data);
+            hasher.update(&data);
 
-            // {
-            //     #[cfg(any(feature = "keccak_160_lsb", feature = "blake2s_160_lsb"))]
-            //     {
-            //         Felt::from_bytes_be_slice(&hasher.finalize().as_slice()[12..32])
-            //     }
+            {
+                #[cfg(any(feature = "keccak_160_lsb", feature = "blake2s_160_lsb"))]
+                {
+                    Felt::from_bytes_be_slice(&hasher.finalize().as_slice()[12..32])
+                }
 
-            //     #[cfg(any(feature = "keccak_248_lsb", feature = "blake2s_248_lsb"))]
-            //     {
-            //         Felt::from_bytes_be_slice(&hasher.finalize().as_slice()[1..32])
-            //     }
-            // }
+                #[cfg(any(feature = "keccak_248_lsb", feature = "blake2s_248_lsb"))]
+                {
+                    Felt::from_bytes_be_slice(&hasher.finalize().as_slice()[1..32])
+                }
+            }
         };
 
         vector_queries[i] = Query { index: queries[i], value: hash };
